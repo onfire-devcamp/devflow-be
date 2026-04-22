@@ -1,0 +1,57 @@
+import e from "express";
+import User from "../models/UserModels.js";
+
+// GET /users
+export const getUser = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Lỗi khi lấy người dùng", error: error.message });
+  }
+};
+
+// POST /users
+export const createUser = async (req, res) => {
+  const { name, email } = req.body;
+  try {
+    const user = await User.create({ name, email });
+    res.status(201).json(user);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Lỗi khi tạo người dùng", error: error.message });
+  }
+};
+// Update user by ID
+export const updateUser = async (req, res) => {
+  const { id } = req.params;
+  const { name, email } = req.body;
+  try {
+    const user = await User.findByIdAndUpdate(
+      id,
+      { name, email },
+      { new: true },
+    );
+    res.status(200).json(user);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Lỗi khi cập nhật người dùng", error: error.message });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  const { id } = req.params;
+  console.log("ID deleted: ", id);
+  try {
+    await User.findByIdAndDelete(id);
+    res.status(200).json({ message: "Người dùng đã được xóa" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Lỗi khi xóa người dùng", error: error.message });
+  }
+};
