@@ -1,7 +1,8 @@
 import "dotenv/config";
 import connectDB from "./config/database.js";
 import app from "./app.js";
-const port = 3000;
+import { env } from "./config/environment.js";
+const port = env.PORT;
 
 connectDB();
 app.listen(port, () => {

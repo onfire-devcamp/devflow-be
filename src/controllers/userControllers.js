@@ -1,4 +1,3 @@
-import e from "express";
 import User from "../models/UserModels.js";
 
 // GET /users
@@ -7,9 +6,7 @@ export const getUser = async (req, res) => {
     const users = await User.find();
     res.status(200).json(users);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Lỗi khi lấy người dùng", error: error.message });
+    res.status(500).json({ message: "Getting error", error: error.message });
   }
 };
 
@@ -20,9 +17,7 @@ export const createUser = async (req, res) => {
     const user = await User.create({ name, email });
     res.status(201).json(user);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Lỗi khi tạo người dùng", error: error.message });
+    res.status(500).json({ message: "Creating error", error: error.message });
   }
 };
 // Update user by ID
@@ -37,9 +32,7 @@ export const updateUser = async (req, res) => {
     );
     res.status(200).json(user);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Lỗi khi cập nhật người dùng", error: error.message });
+    res.status(500).json({ message: "Updating error", error: error.message });
   }
 };
 
@@ -48,10 +41,8 @@ export const deleteUser = async (req, res) => {
   console.log("ID deleted: ", id);
   try {
     await User.findByIdAndDelete(id);
-    res.status(200).json({ message: "Người dùng đã được xóa" });
+    res.status(200).json({ message: "Deleted" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Lỗi khi xóa người dùng", error: error.message });
+    res.status(500).json({ message: "Deleting error", error: error.message });
   }
 };

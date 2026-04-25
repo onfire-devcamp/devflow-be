@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-//test husky
 const mongoURI = process.env.MONGODB_URL;
 const connectDB = async () => {
   try {
