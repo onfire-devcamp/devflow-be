@@ -5,5 +5,5 @@ const port = 3000;
 
 connectDB();
 app.listen(port, () => {
-  console.log(`Server đang chạy tại http://localhost:${port}`);
+  console.log(`Server is running at http://localhost:${port}`);
 });
