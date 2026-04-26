@@ -23,25 +23,25 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.7.2",
     "dotenv": "^17.4.2",
     "env": "^0.0.2",
     "express": "^5.2.1",
     "mongodb": "^7.1.1",
-    "mongoose": "^9.4.1"
+    "mongoose": "^9.4.1",
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.2",
     "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^10.0.1",
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.7.2",
     "eslint": "^10.2.1",
     "globals": "^17.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "prettier": "3.8.3",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "ts-node": "^10.9.2"
   },
   "lint-staged": {
     "src/**/*.ts": [
