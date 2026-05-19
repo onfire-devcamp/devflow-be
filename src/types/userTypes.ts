@@ -3,6 +3,8 @@ import type { ParsedQs } from "qs";
 export interface UserPayload {
   name: string;
   email: string;
+  passwordHash: string;
+  username: string;
 }
 
 export interface UserIdParams {
