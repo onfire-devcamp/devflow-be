@@ -6,6 +6,10 @@ import userRoute from "./routes/userRoute.ts";
 const app = express();
 
 app.use(express.json());
-app.use("/users", userRoute);
+app.get("/", async (req: Request, res: Response) => {
+  res.send("API is working");
+});
+
+app.use("/user", userRoute);
 
 export default app;
