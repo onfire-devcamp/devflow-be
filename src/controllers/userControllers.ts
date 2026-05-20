@@ -7,6 +7,7 @@ import type {
   UserQuery,
 } from "../types/userTypes.ts";
 
+// GET /users
 export const getUser = async (
   req: Request<EmptyObject, unknown, EmptyObject, UserQuery>,
   res: Response,
@@ -20,20 +21,14 @@ export const getUser = async (
   }
 };
 
+// POST /users
 export const createUser = async (
   req: Request<EmptyObject, unknown, UserPayload, UserQuery>,
   res: Response,
 ): Promise<void> => {
-  const { name, email, passwordHash, username } = req.body;
-
+  const { name, email } = req.body;
   try {
-    const user = await User.create({
-      name,
-      email,
-      passwordHash,
-      username,
-    });
-
+    const user = await User.create({ name, email });
     res.status(201).json(user);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -41,19 +36,18 @@ export const createUser = async (
   }
 };
 
+// Update user by ID
 export const updateUser = async (
   req: Request<UserIdParams, unknown, UserPayload, UserQuery>,
   res: Response,
 ): Promise<void> => {
   const { id } = req.params;
-
-  const { name, email, passwordHash, username } = req.body;
-
+  const { name, email } = req.body;
   try {
     const user = await User.findByIdAndUpdate(
       id,
-      { name, email, passwordHash, username },
-      { new: true, runValidators: true },
+      { name, email },
+      { new: true },
     );
     res.status(200).json(user);
   } catch (error: unknown) {
@@ -62,12 +56,12 @@ export const updateUser = async (
   }
 };
 
-// 4. DELETE /users/:id (Giữ nguyên)
 export const deleteUser = async (
   req: Request<UserIdParams, unknown, EmptyObject, UserQuery>,
   res: Response,
 ): Promise<void> => {
   const { id } = req.params;
+  console.log("ID deleted: ", id);
   try {
     await User.findByIdAndDelete(id);
     res.status(200).json({ message: "Deleted" });
