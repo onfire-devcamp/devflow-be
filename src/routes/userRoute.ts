@@ -4,13 +4,16 @@ import {
   getUser,
   updateUser,
   deleteUser,
-} from "../controllers/userControllers.ts";
-
+  loginUser,
+} from "../controllers/userControllers.js";
+import { protect } from "../middlewares/authMiddleware.js";
 const router = express.Router();
-
+//anyone can access this
 router.post("/", createUser);
-router.get("/", getUser);
-router.put("/:id", updateUser);
-router.delete("/:id", deleteUser);
+router.post("/login", loginUser);
+//need token to get
+router.get("/", protect, getUser);
+router.put("/:id", protect, updateUser);
+router.delete("/:id", protect, deleteUser);
 
 export default router;
