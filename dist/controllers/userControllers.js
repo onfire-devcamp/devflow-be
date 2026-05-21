@@ -1,4 +1,4 @@
-import User from "../models/userModels.js";
+import User from "../models/userModel.js";
 // GET /users
 export const getUser = async (req, res) => {
     try {
@@ -12,9 +12,15 @@ export const getUser = async (req, res) => {
 };
 // POST /users
 export const createUser = async (req, res) => {
-    const { name, email } = req.body;
+    const { email, passwordHash, username, avatarUrl, skills } = req.body;
     try {
-        const user = await User.create({ name, email });
+        const user = await User.create({
+            email,
+            passwordHash,
+            username,
+            avatarUrl,
+            skills,
+        });
         res.status(201).json(user);
     }
     catch (error) {
@@ -25,9 +31,12 @@ export const createUser = async (req, res) => {
 // Update user by ID
 export const updateUser = async (req, res) => {
     const { id } = req.params;
-    const { name, email } = req.body;
+    const updateData = req.body;
     try {
-        const user = await User.findByIdAndUpdate(id, { name, email }, { new: true });
+        const user = await User.findByIdAndUpdate(id, updateData, {
+            new: true,
+            runValidators: true,
+        });
         res.status(200).json(user);
     }
     catch (error) {
