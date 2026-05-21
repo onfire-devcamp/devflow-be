@@ -10,6 +10,6 @@ app.get("/", async (req: Request, res: Response) => {
   res.send("API is working");
 });
 
-app.use("/user", userRoute);
+app.use("/api/user", userRoute);
 
 export default app;

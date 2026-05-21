@@ -6,5 +6,5 @@ app.use(express.json());
 app.get("/", async (req, res) => {
     res.send("API is working");
 });
-app.use("/user", userRoute);
+app.use("/api/user", userRoute);
 export default app;
