@@ -7,24 +7,28 @@ export interface UserSkillsPayload {
   devops?: number;
 }
 
-export interface UserCreatePayload {
+export interface BaseUserPayload {
   email: string;
-  passwordHash: string;
   username: string;
   avatarUrl?: string;
   skills?: UserSkillsPayload;
 }
 
-export interface UserUpdatePayload {
-  email?: string;
-  passwordHash?: string;
-  username?: string;
-  lastLogin?: Date;
-  avatarUrl?: string;
-  currentStreak?: number;
-  highestStreak?: number;
-  skills?: UserSkillsPayload;
+// Auth payloads
+export interface RegisterPayload extends BaseUserPayload {
+  password: string;
 }
+
+export type LoginPayload = Pick<RegisterPayload, "email" | "password">;
+
+// Database & services payloads
+export interface UserCreatePayload extends BaseUserPayload {
+  passwordHash: string;
+}
+
+export type UserUpdatePayload = Partial<
+  Omit<UserCreatePayload, "passwordHash">
+>;
 
 export interface UserIdParams {
   id: string;

@@ -30,6 +30,7 @@ const userSchema = new Schema<UserDocument>(
     passwordHash: {
       type: String,
       required: true,
+      select: false,
     },
     username: {
       type: String,
