@@ -1,15 +1,18 @@
 // src/controllers/userControllers.ts
 import type { Request, Response } from "express";
-import User from "../models/userModel.js"; 
+import User from "../models/userModel.js";
 import type {
   EmptyObject,
   UserIdParams,
-  UserCreatePayload,
+  RegisterPayload,
   UserQuery,
   UserUpdatePayload,
-  LoginPayload
-} from "../types/userTypes.js"; 
-import { loginUserService } from "../services/userServices.js";
+  LoginPayload,
+} from "../types/userTypes.js";
+import {
+  loginUserService,
+  createUserService,
+} from "../services/userServices.js";
 
 // GET /users
 export const getUser = async (
@@ -27,14 +30,21 @@ export const getUser = async (
 
 // POST /users (Register / Create User)
 export const createUser = async (
-  req: Request<EmptyObject, unknown, UserCreatePayload, UserQuery>,
+  req: Request<EmptyObject, unknown, RegisterPayload, UserQuery>,
   res: Response,
 ): Promise<void> => {
-  const { email, passwordHash, username, avatarUrl, skills } = req.body;
   try {
-    const user = await User.create({
+    const { email, password, username, avatarUrl, skills } = req.body;
+
+    if (!email || !password || !username) {
+      res
+        .status(400)
+        .json({ message: "Email, password, and username are required." });
+      return;
+    }
+    const user = await createUserService({
       email,
-      passwordHash,
+      password,
       username,
       avatarUrl,
       skills,
@@ -42,6 +52,10 @@ export const createUser = async (
     res.status(201).json(user);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage === "Email already exists") {
+      res.status(400).json({ message: errorMessage });
+      return;
+    }
     res.status(500).json({ message: "Creating error", error: errorMessage });
   }
 };
