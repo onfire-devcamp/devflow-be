@@ -11,32 +11,30 @@ declare global {
 }
 
 export const protect = (
-  req: Request<any, any, any, any>,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): void => {
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    try {
-      token = req.headers.authorization.split(" ")[1];
-      const secretKey = process.env.JWT_SECRET || "fallback_secret_key";
-      const decoded = jwt.verify(token, secretKey);
+  const authHeader = req.headers.authorization;
 
-      req.user = decoded;
-      next();
-    } catch (error) {
-      res
-        .status(401)
-        .json({ message: "No access, invalid token, or expired token!" });
-      return;
-    }
+  // 1. Check if header exists and format is correct
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    res.status(401).json({ message: "No access, token not found!" });
+    return;
   }
 
-  if (!token) {
-    res.status(401).json({ message: "No access, not found token!" });
+  // 2. Extract token
+  const token = authHeader.split(" ")[1];
+
+  // 3. Verify token
+  try {
+    const secretKey = process.env.JWT_SECRET;
+    if (!secretKey) throw new Error("JWT_SECRET is missing");
+
+    req.user = jwt.verify(token, secretKey);
+    return next();
+  } catch (error) {
+    res.status(401).json({ message: "No access, invalid or expired token!" });
     return;
   }
 };

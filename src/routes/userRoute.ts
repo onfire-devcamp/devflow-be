@@ -2,8 +2,8 @@ import express from "express";
 import {
   createUser,
   getUser,
-  updateUser,
-  deleteUser,
+  deleteProfile,
+  updateProfile,
   loginUser,
 } from "../controllers/userControllers.js";
 import { protect } from "../middlewares/authMiddleware.js";
@@ -13,7 +13,7 @@ router.post("/", createUser);
 router.post("/login", loginUser);
 //need token to get
 router.get("/", protect, getUser);
-router.put("/:id", protect, updateUser);
-router.delete("/:id", protect, deleteUser);
+router.put("/:id", protect, updateProfile);
+router.delete("/:id", protect, deleteProfile);
 
 export default router;
