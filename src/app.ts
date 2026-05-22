@@ -2,6 +2,7 @@ import express from "express";
 import type { Request, Response } from "express";
 import "dotenv/config";
 import userRoute from "./routes/userRoute.ts";
+import activityRoute from "./routes/activityRoute.ts";
 
 const app = express();
 
@@ -11,5 +12,6 @@ app.get("/", async (req: Request, res: Response) => {
 });
 
 app.use("/api/user", userRoute);
+app.use("/api/activity", activityRoute);
 
 export default app;
