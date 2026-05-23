@@ -42,14 +42,14 @@ export const loginUserService = async (input: LoginPayload) => {
 
   const secretKey = env.JWT_SECRET;
   const token = jwt.sign({ userId: user._id, email: user.email }, secretKey, {
-    expiresIn: "1d",
+    expiresIn: env.JWT_EXPIRES_IN as any,
   });
 
   return {
     token,
     user: {
       id: user._id,
-      name: user.username,
+      username: user.username,
       email: user.email,
     },
   };
