@@ -9,8 +9,10 @@ export interface UserSkills {
 
 export interface UserDocument extends Document {
   email: string;
-  passwordHash: string;
+  passwordHash?: string;
   username: string;
+  provider: "local" | "google";
+  providerId?: string;
   lastLogin: Date;
   avatarUrl: string;
   currentStreak: number;
@@ -30,8 +32,16 @@ const userSchema = new Schema<UserDocument>(
     },
     passwordHash: {
       type: String,
-      required: true,
       select: false,
+    },
+    provider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
+    providerId: {
+      type: String,
+      default: "",
     },
     username: {
       type: String,

@@ -9,8 +9,16 @@ const userSchema = new Schema({
     },
     passwordHash: {
         type: String,
-        required: true,
         select: false,
+    },
+    provider: {
+        type: String,
+        enum: ['local', 'google'],
+        default: 'local',
+    },
+    providerId: {
+        type: String,
+        default: '',
     },
     username: {
         type: String,
@@ -32,6 +40,9 @@ const userSchema = new Schema({
     highestStreak: {
         type: Number,
         default: 0,
+    },
+    lastStreakDate: {
+        type: Date,
     },
     skills: {
         frontend: {
