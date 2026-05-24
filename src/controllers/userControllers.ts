@@ -8,27 +8,36 @@ import type {
   UserQuery,
   UserUpdatePayload,
   LoginPayload,
+  GoogleAuthPayload,
 } from "../types/userTypes.js";
 import {
   loginUserService,
   createUserService,
+  googleAuthService,
 } from "../services/userServices.js";
 import { AuthenticationError, BadRequestError } from "../utils/customErrors.ts";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const serverError = (res: Response, context: string, error: unknown) => {
+  console.error(`[${context}]`, error);
+  res.status(500).json({ message: "Internal server error" });
+};
+
 // GET /users
 export const getUser = async (
-  req: Request<EmptyObject, unknown, EmptyObject, UserQuery>,
+  _req: Request<EmptyObject, unknown, EmptyObject, UserQuery>,
   res: Response,
 ): Promise<void> => {
   try {
     const users = await User.find();
     res.status(200).json(users);
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ message: "Getting error", error: errorMessage });
+  } catch (error) {
+    serverError(res, "getUser", error);
   }
 };
 
-// POST /users (Register / Create User)
+// POST /users (Register)
 export const createUser = async (
   req: Request<EmptyObject, unknown, RegisterPayload, UserQuery>,
   res: Response,
@@ -42,23 +51,26 @@ export const createUser = async (
         .json({ message: "Email, password, and username are required." });
       return;
     }
-    const user = await createUserService({
+
+    if (!EMAIL_RE.test(email)) {
+      res.status(400).json({ message: "Invalid email format." });
+      return;
+    }
+
+    const result = await createUserService({
       email,
       password,
       username,
       avatarUrl,
       skills,
     });
-    res.status(201).json(user);
-  } catch (error: unknown) {
+    res.status(201).json({ message: "Account created!", ...result });
+  } catch (error) {
     if (error instanceof BadRequestError) {
       res.status(error.statusCode).json({ message: error.message });
       return;
     }
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res
-      .status(500)
-      .json({ message: "Internal server error", error: errorMessage });
+    serverError(res, "createUser", error);
   }
 };
 
@@ -68,22 +80,16 @@ export const updateProfile = async (
   res: Response,
 ): Promise<void> => {
   try {
-    // get id from token verified in protect middleware
     const authenticatedUser = req.user as jwt.JwtPayload;
     const id = authenticatedUser?.userId;
 
-    const updateData = req.body;
-    const user = await User.findByIdAndUpdate(id, updateData, {
+    const user = await User.findByIdAndUpdate(id, req.body, {
       new: true,
       runValidators: true,
     });
-
     res.status(200).json(user);
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res
-      .status(500)
-      .json({ message: "Updating profile error", error: errorMessage });
+  } catch (error) {
+    serverError(res, "updateProfile", error);
   }
 };
 
@@ -93,7 +99,6 @@ export const deleteProfile = async (
   res: Response,
 ): Promise<void> => {
   try {
-    // get id from token verified in protect middleware
     const authenticatedUser = req.user as jwt.JwtPayload;
     const id = authenticatedUser?.userId;
 
@@ -101,11 +106,8 @@ export const deleteProfile = async (
     res
       .status(200)
       .json({ message: "Your account has been successfully deleted." });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res
-      .status(500)
-      .json({ message: "Deleting profile error", error: errorMessage });
+  } catch (error) {
+    serverError(res, "deleteProfile", error);
   }
 };
 
@@ -123,20 +125,43 @@ export const loginUser = async (
         .json({ message: "Please provide both email and password." });
       return;
     }
+
     const result = await loginUserService({ email, password });
-    res.status(200).json({
-      message: "Login successful!",
-      ...result,
-    });
-  } catch (error: unknown) {
+    res.status(200).json({ message: "Login successful!", ...result });
+  } catch (error) {
     if (error instanceof AuthenticationError) {
       res.status(error.statusCode).json({ message: error.message });
       return;
     }
+    serverError(res, "loginUser", error);
+  }
+};
 
-    const errorMessage = error instanceof Error ? error.message : String(error);
+// POST /users/google-auth
+export const googleAuth = async (
+  req: Request<EmptyObject, unknown, GoogleAuthPayload, UserQuery>,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { accessToken } = req.body;
+
+    if (!accessToken?.trim()) {
+      res.status(400).json({ message: "Access token is required." });
+      return;
+    }
+
+    const result = await googleAuthService(accessToken);
     res
-      .status(500)
-      .json({ message: "Internal server error", error: errorMessage });
+      .status(200)
+      .json({ message: "Google authentication successful!", ...result });
+  } catch (error) {
+    if (
+      error instanceof AuthenticationError ||
+      error instanceof BadRequestError
+    ) {
+      res.status(error.statusCode).json({ message: error.message });
+      return;
+    }
+    serverError(res, "googleAuth", error);
   }
 };
