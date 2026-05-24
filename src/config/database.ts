@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
-
-const mongoURI: string | undefined = process.env.MONGODB_URL;
+import { env } from "./environment.js";
 
 const connectDB = async (): Promise<void> => {
   try {
-    await mongoose.connect(mongoURI as string);
+    await mongoose.connect(env.MONGODB_URL);
     console.log("✅ Mongo connected!");
   } catch (error: unknown) {
     console.error("❌ Error connecting to MongoDB:", error);
+    process.exit(1);
   }
 };
 
