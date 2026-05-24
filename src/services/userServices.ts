@@ -42,7 +42,7 @@ export const loginUserService = async (input: LoginPayload) => {
 
   const secretKey = env.JWT_SECRET;
   const token = jwt.sign({ userId: user._id, email: user.email }, secretKey, {
-    expiresIn: env.JWT_EXPIRES_IN as any,
+    expiresIn: env.JWT_EXPIRES_IN,
   });
 
   return {
