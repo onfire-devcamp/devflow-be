@@ -1,11 +1,18 @@
 import express from "express";
-import { createUser, getUser, deleteProfile, updateProfile, loginUser, } from "../controllers/userControllers.js";
+import rateLimit from "express-rate-limit";
+import { createUser, getUser, deleteProfile, updateProfile, loginUser, googleAuth, } from "../controllers/userControllers.js";
 import { protect } from "../middlewares/authMiddleware.js";
 const router = express.Router();
-//anyone can access this
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { message: "Too many attempts. Please try again in 15 minutes." },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 router.post("/", createUser);
-router.post("/login", loginUser);
-//need token to get
+router.post("/login", authLimiter, loginUser);
+router.post("/google-auth", authLimiter, googleAuth);
 router.get("/", protect, getUser);
 router.put("/profile", protect, updateProfile);
 router.delete("/profile", protect, deleteProfile);
