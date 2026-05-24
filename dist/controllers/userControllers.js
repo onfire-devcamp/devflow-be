@@ -1,4 +1,6 @@
 import User from "../models/userModel.js";
+import { loginUserService, createUserService, } from "../services/userServices.js";
+import { AuthenticationError, BadRequestError } from "../utils/customErrors.js";
 // GET /users
 export const getUser = async (req, res) => {
     try {
@@ -10,13 +12,19 @@ export const getUser = async (req, res) => {
         res.status(500).json({ message: "Getting error", error: errorMessage });
     }
 };
-// POST /users
+// POST /users (Register / Create User)
 export const createUser = async (req, res) => {
-    const { email, passwordHash, username, avatarUrl, skills } = req.body;
     try {
-        const user = await User.create({
+        const { email, password, username, avatarUrl, skills } = req.body;
+        if (!email?.trim() || !password?.trim() || !username?.trim()) {
+            res
+                .status(400)
+                .json({ message: "Email, password, and username are required." });
+            return;
+        }
+        const user = await createUserService({
             email,
-            passwordHash,
+            password,
             username,
             avatarUrl,
             skills,
@@ -24,15 +32,23 @@ export const createUser = async (req, res) => {
         res.status(201).json(user);
     }
     catch (error) {
+        if (error instanceof BadRequestError) {
+            res.status(error.statusCode).json({ message: error.message });
+            return;
+        }
         const errorMessage = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ message: "Creating error", error: errorMessage });
+        res
+            .status(500)
+            .json({ message: "Internal server error", error: errorMessage });
     }
 };
-// Update user by ID
-export const updateUser = async (req, res) => {
-    const { id } = req.params;
-    const updateData = req.body;
+// PUT /users/profile
+export const updateProfile = async (req, res) => {
     try {
+        // get id from token verified in protect middleware
+        const authenticatedUser = req.user;
+        const id = authenticatedUser?.userId;
+        const updateData = req.body;
         const user = await User.findByIdAndUpdate(id, updateData, {
             new: true,
             runValidators: true,
@@ -41,18 +57,53 @@ export const updateUser = async (req, res) => {
     }
     catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ message: "Updating error", error: errorMessage });
+        res
+            .status(500)
+            .json({ message: "Updating profile error", error: errorMessage });
     }
 };
-export const deleteUser = async (req, res) => {
-    const { id } = req.params;
-    console.log("ID deleted: ", id);
+// DELETE /users/profile
+export const deleteProfile = async (req, res) => {
     try {
+        // get id from token verified in protect middleware
+        const authenticatedUser = req.user;
+        const id = authenticatedUser?.userId;
         await User.findByIdAndDelete(id);
-        res.status(200).json({ message: "Deleted" });
+        res
+            .status(200)
+            .json({ message: "Your account has been successfully deleted." });
     }
     catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ message: "Deleting error", error: errorMessage });
+        res
+            .status(500)
+            .json({ message: "Deleting profile error", error: errorMessage });
+    }
+};
+// POST /users/login
+export const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email?.trim() || !password?.trim()) {
+            res
+                .status(400)
+                .json({ message: "Please provide both email and password." });
+            return;
+        }
+        const result = await loginUserService({ email, password });
+        res.status(200).json({
+            message: "Login successful!",
+            ...result,
+        });
+    }
+    catch (error) {
+        if (error instanceof AuthenticationError) {
+            res.status(error.statusCode).json({ message: error.message });
+            return;
+        }
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res
+            .status(500)
+            .json({ message: "Internal server error", error: errorMessage });
     }
 };

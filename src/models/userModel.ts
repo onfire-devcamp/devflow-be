@@ -15,6 +15,7 @@ export interface UserDocument extends Document {
   avatarUrl: string;
   currentStreak: number;
   highestStreak: number;
+  lastStreakDate?: Date;
   skills: UserSkills;
 }
 
@@ -52,6 +53,9 @@ const userSchema = new Schema<UserDocument>(
     highestStreak: {
       type: Number,
       default: 0,
+    },
+    lastStreakDate: {
+      type: Date,
     },
     skills: {
       frontend: {

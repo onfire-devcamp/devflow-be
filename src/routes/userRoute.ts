@@ -13,7 +13,7 @@ router.post("/", createUser);
 router.post("/login", loginUser);
 //need token to get
 router.get("/", protect, getUser);
-router.put("/:id", protect, updateProfile);
-router.delete("/:id", protect, deleteProfile);
+router.put("/profile", protect, updateProfile);
+router.delete("/profile", protect, deleteProfile);
 
 export default router;
