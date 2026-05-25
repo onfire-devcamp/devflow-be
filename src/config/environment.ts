@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-
+import { SignOptions } from "jsonwebtoken";
 dotenv.config();
 const secretKey = process.env.JWT_SECRET;
 if (!secretKey) {
@@ -13,7 +13,7 @@ interface Env {
   MONGODB_URL: string | undefined;
   PORT: string | undefined;
   JWT_SECRET: string;
-  JWT_EXPIRES_IN: string;
+  JWT_EXPIRES_IN: SignOptions["expiresIn"];
   SALT_ROUNDS: number;
 }
 
@@ -21,6 +21,6 @@ export const env: Env = {
   MONGODB_URL: process.env.MONGODB_URL,
   PORT: process.env.PORT,
   JWT_SECRET: secretKey,
-  JWT_EXPIRES_IN: expireDay,
+  JWT_EXPIRES_IN: expireDay as SignOptions["expiresIn"],
   SALT_ROUNDS: Number(process.env.SALT_ROUNDS) || 10,
 };
