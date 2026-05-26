@@ -9,6 +9,7 @@ import {
   googleAuth,
 } from "../controllers/userControllers.js";
 import { protect } from "../middlewares/authMiddleware.js";
+import { getUserSkills } from "../controllers/progressBarLogic.js";
 
 const router = express.Router();
 
@@ -27,5 +28,6 @@ router.post("/google-auth", authLimiter, googleAuth);
 router.get("/", protect, getUser);
 router.put("/profile", protect, updateProfile);
 router.delete("/profile", protect, deleteProfile);
+router.get("/skills", protect, getUserSkills);
 
 export default router;
