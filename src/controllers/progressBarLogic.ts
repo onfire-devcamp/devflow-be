@@ -1,21 +1,21 @@
 import { Request, Response } from "express";
 import User from "../models/userModel.js";
+import type { AuthenticatedRequest } from "../types/userTypes.js";
 
 export const getUserSkills = async (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({ message: "User not authenticated" });
       return;
     }
-
     const user = await User.findById(userId);
     if (!user) {
       res.status(404).json({ message: "Cannot find user" });
-      return; // Ensure we don't continue after sending response
+      return;
     }
 
     const processedSkills = [

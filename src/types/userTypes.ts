@@ -34,6 +34,13 @@ export interface UserIdParams {
   id: string;
 }
 
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    userId: string;
+    email: string;
+  };
+}
+
 export interface UserQuery extends ParsedQs {}
 
 export type EmptyObject = Record<string, never>;
