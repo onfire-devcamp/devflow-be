@@ -7,8 +7,6 @@ import { env } from "../config/environment.js";
 import { AuthenticationError, BadRequestError } from "../utils/customErrors.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASSWORD_MIN = 8;
-const PASSWORD_MAX = 72;
 
 const signToken = (userId: unknown, email: string) =>
   jwt.sign({ userId, email }, env.JWT_SECRET, {
@@ -21,20 +19,10 @@ const validateEmailFormat = (email: string) => {
   }
 };
 
-const validatePasswordStrength = (password: string) => {
-  if (password.length < PASSWORD_MIN) {
-    throw new BadRequestError("Password must be at least 8 characters.");
-  }
-  if (password.length > PASSWORD_MAX) {
-    throw new BadRequestError("Password must be at most 72 characters.");
-  }
-};
-
 export const createUserService = async (input: RegisterPayload) => {
   const { email, password, username, avatarUrl, skills } = input;
 
   validateEmailFormat(email);
-  validatePasswordStrength(password);
 
   const passwordHash = await bcrypt.hash(password, env.SALT_ROUNDS);
   try {
