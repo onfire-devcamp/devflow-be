@@ -3,12 +3,18 @@ import mongoose, { Schema, Document } from "mongoose";
 export type AIEvaluationType = "codeReview" | "explainToPass";
 export type AIEvaluationPassStatus = "PASS" | "FAIL";
 
+export interface AIEvaluationInput {
+  rawText?: string;
+  codeSnippet?: string;
+  language?: string;
+}
+
 export interface AIEvaluationDocument extends Document {
   userId: mongoose.Types.ObjectId;
   projectId: mongoose.Types.ObjectId;
   taskId: mongoose.Types.ObjectId;
   type: AIEvaluationType;
-  inputData: string | Record<string, unknown>;
+  inputData: AIEvaluationInput;
   score: number;
   passStatus: AIEvaluationPassStatus;
   feedback: string;
@@ -37,8 +43,9 @@ const aiEvaluationSchema = new Schema<AIEvaluationDocument>(
       required: true,
     },
     inputData: {
-      type: Schema.Types.Mixed,
-      required: true,
+      rawText: { type: String, trim: true },
+      codeSnippet: { type: String },
+      language: { type: String, trim: true },
     },
     score: {
       type: Number,
