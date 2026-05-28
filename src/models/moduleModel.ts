@@ -31,6 +31,8 @@ const moduleSchema = new Schema<ModuleDocument>(
   },
 );
 
+moduleSchema.index({ projectId: 1, order: 1 }, { unique: true });
+
 const Module = mongoose.model<ModuleDocument>("Module", moduleSchema);
 
 export default Module;
