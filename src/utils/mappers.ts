@@ -6,13 +6,17 @@ import type {
   ProjectSummaryView,
 } from "../types/projectTypes.js";
 import type { UserWorkspaceFileView } from "../types/workspaceTypes.js";
+import { DataIntegrityError } from "./customErrors.ts";
 
 export const isValidObjectId = (id: string) => mongoose.isValidObjectId(id);
 
 export const toIdString = (
   value: mongoose.Types.ObjectId | string | undefined | null,
 ): string => {
-  if (!value) return "";
+  if (value == null) {
+    throw new DataIntegrityError("Missing required related identifier.");
+  }
+
   return value.toString();
 };
 

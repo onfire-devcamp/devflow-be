@@ -33,3 +33,16 @@ export class NotFoundError extends Error {
     Error.captureStackTrace(this, this.constructor);
   }
 }
+
+export class DataIntegrityError extends Error {
+  public readonly statusCode: number;
+
+  constructor(message: string) {
+    super(message);
+    this.name = "DataIntegrityError";
+    this.statusCode = 500;
+
+    Object.setPrototypeOf(this, DataIntegrityError.prototype);
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
