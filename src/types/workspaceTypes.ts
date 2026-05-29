@@ -10,6 +10,16 @@ export interface UserWorkspaceFileView {
   updatedAt: Date;
 }
 
+export interface UserProgressView {
+  _id: string;
+  userId: string;
+  projectId: string;
+  completedTaskIds: string[];
+  unlockedModuleIds: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface InitializeWorkspaceView {
   createdCount: number;
   files: UserWorkspaceFileView[];

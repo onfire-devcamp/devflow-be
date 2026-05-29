@@ -3,17 +3,89 @@ import FileTemplate from "../models/fileTemplateModel.js";
 import Module from "../models/moduleModel.js";
 import Task from "../models/taskModel.js";
 import UserFile from "../models/userFileModel.js";
-import { BadRequestError, NotFoundError } from "../utils/customErrors.js";
+import UserProgress from "../models/userProgressModel.js";
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from "../utils/customErrors.js";
 import {
   isValidObjectId,
   toIdString,
+  toUserProgressView,
   toUserWorkspaceFileView,
 } from "../utils/mappers.js";
 import type {
   InitializeWorkspaceView,
   SaveUserFileInput,
+  UserProgressView,
   UserWorkspaceFileView,
 } from "../types/workspaceTypes.js";
+
+type ModuleSummary = {
+  _id: mongoose.Types.ObjectId;
+  order: number;
+};
+
+const ensureTaskModuleAccess = async (
+  userId: string,
+  projectId: string,
+  requestedModuleId: mongoose.Types.ObjectId,
+  orderedModules: ModuleSummary[],
+): Promise<void> => {
+  const firstModule = orderedModules[0];
+  if (!firstModule) {
+    throw new NotFoundError("Project has no modules.");
+  }
+
+  const requestedModuleIdString = toIdString(requestedModuleId);
+  const firstModuleIdString = toIdString(firstModule._id);
+
+  const progress = await UserProgress.findOne({ userId, projectId }).lean();
+
+  if (!progress) {
+    if (requestedModuleIdString !== firstModuleIdString) {
+      throw new ForbiddenError(
+        "Complete the earlier modules before starting this task.",
+      );
+    }
+
+    await UserProgress.findOneAndUpdate(
+      { userId, projectId },
+      {
+        $setOnInsert: {
+          userId,
+          projectId,
+          completedTaskIds: [],
+          unlockedModuleIds: [firstModule._id],
+        },
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true },
+    );
+
+    return;
+  }
+
+  const unlockedModuleIds = new Set(
+    progress.unlockedModuleIds.map((moduleId) => toIdString(moduleId)),
+  );
+
+  if (unlockedModuleIds.has(requestedModuleIdString)) {
+    return;
+  }
+
+  if (requestedModuleIdString === firstModuleIdString) {
+    await UserProgress.updateOne(
+      { userId, projectId },
+      { $addToSet: { unlockedModuleIds: firstModule._id } },
+    );
+    return;
+  }
+
+  throw new ForbiddenError(
+    "Complete the earlier modules before starting this task.",
+  );
+};
 
 export const initializeWorkspace = async (
   userId: string,
@@ -33,6 +105,18 @@ export const initializeWorkspace = async (
   if (!moduleDoc || toIdString(moduleDoc.projectId) !== projectId) {
     throw new BadRequestError("Task does not belong to the specified project.");
   }
+
+  const orderedModules = (await Module.find({ projectId })
+    .sort({ order: 1 })
+    .select("_id order")
+    .lean()) as ModuleSummary[];
+
+  await ensureTaskModuleAccess(
+    userId,
+    projectId,
+    task.moduleId,
+    orderedModules,
+  );
 
   const fileTemplates = await FileTemplate.find({
     _id: { $in: task.fileId },
@@ -73,11 +157,7 @@ export const initializeWorkspace = async (
     await UserFile.bulkWrite(bulkOps);
   }
 
-  const workspaceFiles = await UserFile.find({
-    userId,
-    projectId,
-    fileId: { $in: fileTemplates.map((ft) => ft._id) },
-  })
+  const workspaceFiles = await UserFile.find({ userId, projectId })
     .sort({ createdAt: 1 })
     .populate("fileId")
     .lean();
@@ -86,6 +166,94 @@ export const initializeWorkspace = async (
     createdCount: newUserFiles.length,
     files: workspaceFiles.map(toUserWorkspaceFileView),
   };
+};
+
+export const completeTask = async (
+  userId: string,
+  projectId: string,
+  taskId: string,
+): Promise<UserProgressView> => {
+  if (![userId, projectId, taskId].every(isValidObjectId)) {
+    throw new BadRequestError("Invalid workspace identifiers.");
+  }
+
+  const task = await Task.findById(taskId).lean();
+  if (!task) throw new NotFoundError("Task not found.");
+
+  const moduleDoc = await Module.findById(task.moduleId)
+    .select("projectId")
+    .lean();
+  if (!moduleDoc || toIdString(moduleDoc.projectId) !== projectId) {
+    throw new BadRequestError("Task does not belong to the specified project.");
+  }
+
+  const orderedModules = (await Module.find({ projectId })
+    .sort({ order: 1 })
+    .select("_id order")
+    .lean()) as ModuleSummary[];
+
+  await ensureTaskModuleAccess(
+    userId,
+    projectId,
+    task.moduleId,
+    orderedModules,
+  );
+
+  const progress = await UserProgress.findOne({ userId, projectId });
+  if (!progress) {
+    throw new BadRequestError("Unable to update workspace progress.");
+  }
+
+  const moduleTaskIds = await Task.find({ moduleId: task.moduleId })
+    .select("_id")
+    .lean();
+
+  const completedTaskIdSet = new Set(
+    progress.completedTaskIds.map((completedTaskId) =>
+      toIdString(completedTaskId),
+    ),
+  );
+  completedTaskIdSet.add(toIdString(task._id));
+
+  const isModuleComplete = moduleTaskIds.every((moduleTask) =>
+    completedTaskIdSet.has(toIdString(moduleTask._id)),
+  );
+
+  const currentModuleIndex = orderedModules.findIndex(
+    (module) => toIdString(module._id) === toIdString(task.moduleId),
+  );
+
+  const nextModuleId =
+    isModuleComplete && currentModuleIndex >= 0
+      ? orderedModules[currentModuleIndex + 1]?._id
+      : undefined;
+
+  const update: {
+    $addToSet: {
+      completedTaskIds: mongoose.Types.ObjectId;
+      unlockedModuleIds?: mongoose.Types.ObjectId;
+    };
+  } = {
+    $addToSet: {
+      completedTaskIds: task._id,
+    },
+  };
+
+  if (nextModuleId) {
+    update.$addToSet.unlockedModuleIds = nextModuleId;
+  }
+
+  const updatedProgress = await UserProgress.findOneAndUpdate(
+    { userId, projectId },
+    update,
+    { new: true },
+  );
+
+  if (!updatedProgress) {
+    throw new BadRequestError("Unable to update workspace progress.");
+  }
+
+  return toUserProgressView(updatedProgress);
 };
 
 export const saveUserFile = async ({

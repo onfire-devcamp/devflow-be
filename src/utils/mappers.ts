@@ -3,6 +3,7 @@ import type { FileTemplateDocument } from "../models/fileTemplateModel.js";
 import type { TaskDocument } from "../models/taskModel.js";
 import type { TaskFileDocument } from "../models/taskFileModel.js";
 import type { UserFileDocument } from "../models/userFileModel.js";
+import type { UserProgressDocument } from "../models/userProgressModel.js";
 import type { ProjectDocument } from "../models/projectModel.js";
 import type {
   FileTemplateView,
@@ -10,8 +11,20 @@ import type {
   TaskView,
   ProjectSummaryView,
 } from "../types/projectTypes.js";
-import type { UserWorkspaceFileView } from "../types/workspaceTypes.js";
+import type {
+  UserProgressView,
+  UserWorkspaceFileView,
+} from "../types/workspaceTypes.js";
 import { DataIntegrityError } from "./customErrors.ts";
+
+type TaskFileReference =
+  | mongoose.Types.ObjectId
+  | string
+  | FileTemplateDocument;
+
+type TaskWithFileReferences = Omit<TaskDocument, "fileId"> & {
+  fileId?: TaskFileReference[];
+};
 
 export const isValidObjectId = (id: string) => mongoose.isValidObjectId(id);
 
@@ -37,17 +50,23 @@ export const toFileTemplateView = (
 });
 
 export const toTaskView = (
-  task: TaskDocument,
+  task: TaskWithFileReferences,
   fileTemplateMap?: Map<string, FileTemplateView>,
 ): TaskView => {
   const mappedFiles = (task.fileId ?? [])
-    .map((file: any) => {
-      const id = toIdString(file._id || file);
-      return (
-        fileTemplateMap?.get(id) || (file._id ? toFileTemplateView(file) : null)
-      );
+    .map((file) => {
+      if (file instanceof mongoose.Types.ObjectId) {
+        return fileTemplateMap?.get(toIdString(file)) ?? null;
+      }
+
+      if (typeof file === "string") {
+        return fileTemplateMap?.get(file) ?? null;
+      }
+
+      const fileId = toIdString(file._id);
+      return fileTemplateMap?.get(fileId) ?? toFileTemplateView(file);
     })
-    .filter(Boolean) as FileTemplateView[];
+    .filter((file): file is FileTemplateView => file !== null);
 
   return {
     _id: toIdString(task._id),
@@ -91,6 +110,18 @@ export const toUserWorkspaceFileView = (
   content: userFile.content,
   createdAt: userFile.createdAt,
   updatedAt: userFile.updatedAt,
+});
+
+export const toUserProgressView = (
+  progress: UserProgressDocument,
+): UserProgressView => ({
+  _id: toIdString(progress._id),
+  userId: toIdString(progress.userId),
+  projectId: toIdString(progress.projectId),
+  completedTaskIds: (progress.completedTaskIds ?? []).map(toIdString),
+  unlockedModuleIds: (progress.unlockedModuleIds ?? []).map(toIdString),
+  createdAt: progress.createdAt,
+  updatedAt: progress.updatedAt,
 });
 
 export const toProjectSummaryView = (

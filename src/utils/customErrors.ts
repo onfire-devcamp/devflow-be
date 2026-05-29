@@ -34,6 +34,19 @@ export class NotFoundError extends Error {
   }
 }
 
+export class ForbiddenError extends Error {
+  public readonly statusCode: number;
+
+  constructor(message: string) {
+    super(message);
+    this.name = "ForbiddenError";
+    this.statusCode = 403;
+
+    Object.setPrototypeOf(this, ForbiddenError.prototype);
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
 export class DataIntegrityError extends Error {
   public readonly statusCode: number;
 
