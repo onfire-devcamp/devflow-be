@@ -67,7 +67,7 @@ export interface ProjectDetailsView extends ProjectSummaryView {
 }
 
 export interface ProjectRoadmapView {
-  project: ProjectDetailsView;
+  project: ProjectSummaryView;
   modules: ModuleWithTasksView[];
 }
 

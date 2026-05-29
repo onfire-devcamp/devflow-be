@@ -1,62 +1,19 @@
 import mongoose from "mongoose";
-
 import FileTemplate from "../models/fileTemplateModel.js";
 import Module from "../models/moduleModel.js";
 import Task from "../models/taskModel.js";
 import UserFile from "../models/userFileModel.js";
-import { BadRequestError } from "../utils/customErrors.ts";
-import type { FileTemplateView } from "../types/projectTypes.js";
+import { BadRequestError, NotFoundError } from "../utils/customErrors.js";
+import {
+  isValidObjectId,
+  toIdString,
+  toUserWorkspaceFileView,
+} from "../utils/mappers.js";
 import type {
   InitializeWorkspaceView,
   SaveUserFileInput,
   UserWorkspaceFileView,
 } from "../types/workspaceTypes.js";
-
-const isValidObjectId = (id: string) => mongoose.isValidObjectId(id);
-
-const toIdString = (value: mongoose.Types.ObjectId | string): string =>
-  value.toString();
-
-const toFileTemplateView = (fileTemplate: {
-  _id: mongoose.Types.ObjectId | string;
-  projectId: mongoose.Types.ObjectId | string;
-  path: string;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-}): FileTemplateView => ({
-  _id: toIdString(fileTemplate._id),
-  projectId: toIdString(fileTemplate.projectId),
-  path: fileTemplate.path,
-  content: fileTemplate.content,
-  createdAt: fileTemplate.createdAt,
-  updatedAt: fileTemplate.updatedAt,
-});
-
-const toUserWorkspaceFileView = (userFile: {
-  _id: mongoose.Types.ObjectId | string;
-  userId: mongoose.Types.ObjectId | string;
-  projectId: mongoose.Types.ObjectId | string;
-  fileId: {
-    _id: mongoose.Types.ObjectId | string;
-    projectId: mongoose.Types.ObjectId | string;
-    path: string;
-    content: string;
-    createdAt: Date;
-    updatedAt: Date;
-  };
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-}): UserWorkspaceFileView => ({
-  _id: toIdString(userFile._id),
-  userId: toIdString(userFile.userId),
-  projectId: toIdString(userFile.projectId),
-  fileId: toFileTemplateView(userFile.fileId),
-  content: userFile.content,
-  createdAt: userFile.createdAt,
-  updatedAt: userFile.updatedAt,
-});
 
 export const initializeWorkspace = async (
   userId: string,
@@ -68,9 +25,7 @@ export const initializeWorkspace = async (
   }
 
   const task = await Task.findById(taskId).lean();
-  if (!task) {
-    throw new BadRequestError("Task not found.");
-  }
+  if (!task) throw new NotFoundError("Task not found.");
 
   const moduleDoc = await Module.findById(task.moduleId)
     .select("projectId")
@@ -87,51 +42,49 @@ export const initializeWorkspace = async (
   const existingUserFiles = await UserFile.find({
     userId,
     projectId,
-    fileId: { $in: fileTemplates.map((fileTemplate) => fileTemplate._id) },
+    fileId: { $in: fileTemplates.map((ft) => ft._id) },
   }).lean();
 
   const existingFileIdSet = new Set(
     existingUserFiles.map((file) => toIdString(file.fileId)),
   );
+
   const newUserFiles = fileTemplates
-    .filter(
-      (fileTemplate) => !existingFileIdSet.has(toIdString(fileTemplate._id)),
-    )
-    .map((fileTemplate) => ({
+    .filter((ft) => !existingFileIdSet.has(toIdString(ft._id)))
+    .map((ft) => ({
       userId,
       projectId,
-      fileId: fileTemplate._id,
-      content: fileTemplate.content,
+      fileId: ft._id,
+      content: ft.content,
     }));
 
   if (newUserFiles.length > 0) {
-    await UserFile.insertMany(newUserFiles);
+    const bulkOps = newUserFiles.map((file) => ({
+      updateOne: {
+        filter: {
+          userId: file.userId,
+          projectId: file.projectId,
+          fileId: file.fileId,
+        },
+        update: { $setOnInsert: file },
+        upsert: true,
+      },
+    })) as mongoose.mongo.AnyBulkWriteOperation[];
+    await UserFile.bulkWrite(bulkOps);
   }
 
   const workspaceFiles = await UserFile.find({
     userId,
     projectId,
-    fileId: { $in: fileTemplates.map((fileTemplate) => fileTemplate._id) },
+    fileId: { $in: fileTemplates.map((ft) => ft._id) },
   })
     .sort({ createdAt: 1 })
-    .populate({ path: "fileId" })
+    .populate("fileId")
     .lean();
 
   return {
     createdCount: newUserFiles.length,
-    files: workspaceFiles.map((userFile) =>
-      toUserWorkspaceFileView({
-        ...userFile,
-        fileId: userFile.fileId as {
-          _id: mongoose.Types.ObjectId | string;
-          projectId: mongoose.Types.ObjectId | string;
-          path: string;
-          content: string;
-          createdAt: Date;
-          updatedAt: Date;
-        },
-      }),
-    ),
+    files: workspaceFiles.map(toUserWorkspaceFileView),
   };
 };
 
@@ -148,12 +101,7 @@ export const saveUserFile = async ({
   const updatedUserFile = await UserFile.findOneAndUpdate(
     { userId, projectId, fileId },
     {
-      $set: {
-        content: newContent,
-        userId,
-        projectId,
-        fileId,
-      },
+      $set: { content: newContent, userId, projectId, fileId },
     },
     {
       new: true,
@@ -162,24 +110,14 @@ export const saveUserFile = async ({
       setDefaultsOnInsert: true,
     },
   )
-    .populate({ path: "fileId" })
+    .populate("fileId")
     .lean();
 
   if (!updatedUserFile) {
     throw new BadRequestError("Unable to save the workspace file.");
   }
 
-  return toUserWorkspaceFileView({
-    ...updatedUserFile,
-    fileId: updatedUserFile.fileId as {
-      _id: mongoose.Types.ObjectId | string;
-      projectId: mongoose.Types.ObjectId | string;
-      path: string;
-      content: string;
-      createdAt: Date;
-      updatedAt: Date;
-    },
-  });
+  return toUserWorkspaceFileView(updatedUserFile);
 };
 
 export const getUserWorkspace = async (
@@ -192,20 +130,8 @@ export const getUserWorkspace = async (
 
   const workspaceFiles = await UserFile.find({ userId, projectId })
     .sort({ createdAt: 1 })
-    .populate({ path: "fileId" })
+    .populate("fileId")
     .lean();
 
-  return workspaceFiles.map((userFile) =>
-    toUserWorkspaceFileView({
-      ...userFile,
-      fileId: userFile.fileId as {
-        _id: mongoose.Types.ObjectId | string;
-        projectId: mongoose.Types.ObjectId | string;
-        path: string;
-        content: string;
-        createdAt: Date;
-        updatedAt: Date;
-      },
-    }),
-  );
+  return workspaceFiles.map(toUserWorkspaceFileView);
 };
