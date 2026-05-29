@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import FileTemplate from "../models/fileTemplateModel.js";
 import Module from "../models/moduleModel.js";
-import Project from "../models/projectModel.js";
+import Project, { type ProjectTechStackItem } from "../models/projectModel.js";
 import Task from "../models/taskModel.js";
 import TaskFile from "../models/taskFileModel.js";
 import { BadRequestError, NotFoundError } from "../utils/customErrors.js";
@@ -148,39 +148,34 @@ export const getTaskDetails = async (
   };
 };
 
+const groupTechStackItem = (
+  item: ProjectTechStackItem,
+  dictionary: Record<string, ProjectTechStackItem[]>,
+) => {
+  const cat = item.category ?? "Other";
+  if (!dictionary[cat]) {
+    dictionary[cat] = [];
+  }
+  dictionary[cat].push(item);
+};
+
 export const getProjectTechStackGrouped = async (
-  projectId?: string,
-): Promise<Record<string, any[]>> => {
-  if (projectId && !isValidObjectId(projectId)) {
+  projectId: string,
+): Promise<Record<string, ProjectTechStackItem[]>> => {
+  if (!isValidObjectId(projectId)) {
     throw new BadRequestError("Invalid project id.");
   }
 
-  if (projectId) {
-    const project = await Project.findById(projectId).lean();
-    if (!project) throw new NotFoundError("Project not found.");
-
-    const grouped: Record<string, any[]> = {};
-    for (const item of project.techStack ?? []) {
-      const cat = item.category ?? "Other";
-      grouped[cat] = grouped[cat] ?? [];
-      grouped[cat].push(item);
-    }
-    return grouped;
+  const project = await Project.findById(projectId).lean();
+  if (!project) {
+    throw new NotFoundError("Project not found.");
   }
 
-  const projects = await Project.find({}, { techStack: 1 }).lean();
-  const seen = new Set<string>();
-  const grouped: Record<string, any[]> = {};
+  const grouped: Record<string, ProjectTechStackItem[]> = {};
 
-  for (const project of projects) {
-    for (const item of project.techStack ?? []) {
-      const key = `${item.name}::${item.category}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      const cat = item.category ?? "Other";
-      grouped[cat] = grouped[cat] ?? [];
-      grouped[cat].push(item);
-    }
+  for (const item of project.techStack ?? []) {
+    groupTechStackItem(item, grouped);
   }
+
   return grouped;
 };
