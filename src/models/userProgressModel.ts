@@ -5,6 +5,7 @@ export interface UserProgressDocument extends Document {
   projectId: mongoose.Types.ObjectId;
   completedTaskIds: mongoose.Types.ObjectId[];
   unlockedModuleIds: mongoose.Types.ObjectId[];
+  lastActiveTaskId?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,6 +31,10 @@ const userProgressSchema = new Schema<UserProgressDocument>(
       type: [Schema.Types.ObjectId],
       ref: "Module",
       default: [],
+    },
+    lastActiveTaskId: {
+      type: Schema.Types.ObjectId,
+      ref: "Task",
     },
   },
   {

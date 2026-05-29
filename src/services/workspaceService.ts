@@ -32,7 +32,8 @@ const ensureTaskModuleAccess = async (
   projectId: string,
   requestedModuleId: mongoose.Types.ObjectId,
   orderedModules: ModuleSummary[],
-): Promise<void> => {
+  activeTaskId?: string,
+): Promise<import("../models/userProgressModel.js").UserProgressDocument> => {
   const firstModule = orderedModules[0];
   if (!firstModule) {
     throw new NotFoundError("Project has no modules.");
@@ -41,7 +42,7 @@ const ensureTaskModuleAccess = async (
   const requestedModuleIdString = toIdString(requestedModuleId);
   const firstModuleIdString = toIdString(firstModule._id);
 
-  const progress = await UserProgress.findOne({ userId, projectId }).lean();
+  const progress = await UserProgress.findOne({ userId, projectId });
 
   if (!progress) {
     if (requestedModuleIdString !== firstModuleIdString) {
@@ -50,20 +51,15 @@ const ensureTaskModuleAccess = async (
       );
     }
 
-    await UserProgress.findOneAndUpdate(
-      { userId, projectId },
-      {
-        $setOnInsert: {
-          userId,
-          projectId,
-          completedTaskIds: [],
-          unlockedModuleIds: [firstModule._id],
-        },
-      },
-      { new: true, upsert: true, setDefaultsOnInsert: true },
-    );
-
-    return;
+    return UserProgress.create({
+      userId,
+      projectId,
+      completedTaskIds: [],
+      unlockedModuleIds: [firstModule._id],
+      ...(activeTaskId
+        ? { lastActiveTaskId: new mongoose.Types.ObjectId(activeTaskId) }
+        : {}),
+    });
   }
 
   const unlockedModuleIds = new Set(
@@ -71,15 +67,23 @@ const ensureTaskModuleAccess = async (
   );
 
   if (unlockedModuleIds.has(requestedModuleIdString)) {
-    return;
+    if (activeTaskId) {
+      progress.lastActiveTaskId = new mongoose.Types.ObjectId(activeTaskId);
+      await progress.save();
+    }
+
+    return progress;
   }
 
   if (requestedModuleIdString === firstModuleIdString) {
-    await UserProgress.updateOne(
-      { userId, projectId },
-      { $addToSet: { unlockedModuleIds: firstModule._id } },
-    );
-    return;
+    if (!unlockedModuleIds.has(firstModuleIdString)) {
+      progress.unlockedModuleIds.push(firstModule._id);
+    }
+    if (activeTaskId) {
+      progress.lastActiveTaskId = new mongoose.Types.ObjectId(activeTaskId);
+    }
+    await progress.save();
+    return progress;
   }
 
   throw new ForbiddenError(
@@ -116,6 +120,7 @@ export const initializeWorkspace = async (
     projectId,
     task.moduleId,
     orderedModules,
+    taskId,
   );
 
   const fileTemplates = await FileTemplate.find({
@@ -192,17 +197,12 @@ export const completeTask = async (
     .select("_id order")
     .lean()) as ModuleSummary[];
 
-  await ensureTaskModuleAccess(
+  const progress = await ensureTaskModuleAccess(
     userId,
     projectId,
     task.moduleId,
     orderedModules,
   );
-
-  const progress = await UserProgress.findOne({ userId, projectId });
-  if (!progress) {
-    throw new BadRequestError("Unable to update workspace progress.");
-  }
 
   const moduleTaskIds = await Task.find({ moduleId: task.moduleId })
     .select("_id")

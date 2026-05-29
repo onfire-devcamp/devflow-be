@@ -120,6 +120,9 @@ export const toUserProgressView = (
   projectId: toIdString(progress.projectId),
   completedTaskIds: (progress.completedTaskIds ?? []).map(toIdString),
   unlockedModuleIds: (progress.unlockedModuleIds ?? []).map(toIdString),
+  lastActiveTaskId: progress.lastActiveTaskId
+    ? toIdString(progress.lastActiveTaskId)
+    : undefined,
   createdAt: progress.createdAt,
   updatedAt: progress.updatedAt,
 });

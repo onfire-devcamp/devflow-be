@@ -16,6 +16,7 @@ export interface UserProgressView {
   projectId: string;
   completedTaskIds: string[];
   unlockedModuleIds: string[];
+  lastActiveTaskId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
