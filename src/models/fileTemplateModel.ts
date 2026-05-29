@@ -4,6 +4,8 @@ export interface FileTemplateDocument extends Document {
   projectId: mongoose.Types.ObjectId;
   path: string;
   content: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const fileTemplateSchema = new Schema<FileTemplateDocument>(

@@ -14,6 +14,8 @@ export interface TaskDocument extends Document {
   concepts?: string;
   skillCategory: SkillCategory;
   skillPoints: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const taskSchema = new Schema<TaskDocument>(

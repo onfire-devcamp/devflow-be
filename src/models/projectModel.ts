@@ -22,6 +22,8 @@ export interface ProjectDocument extends Document {
   systemFlowUrl?: string;
   techStack: ProjectTechStackItem[];
   features: ProjectFeatureItem[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const projectTechStackSchema = new Schema<ProjectTechStackItem>(

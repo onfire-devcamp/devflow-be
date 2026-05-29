@@ -4,6 +4,8 @@ export interface TaskFileDocument extends Document {
   taskId: mongoose.Types.ObjectId;
   fileId: mongoose.Types.ObjectId;
   content: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const taskFileSchema = new Schema<TaskFileDocument>(
