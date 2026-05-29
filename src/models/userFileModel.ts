@@ -5,6 +5,8 @@ export interface UserFileDocument extends Document {
   projectId: mongoose.Types.ObjectId;
   fileId: mongoose.Types.ObjectId;
   content: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const userFileSchema = new Schema<UserFileDocument>(

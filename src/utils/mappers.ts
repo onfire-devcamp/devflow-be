@@ -1,4 +1,9 @@
 import mongoose from "mongoose";
+import type { FileTemplateDocument } from "../models/fileTemplateModel.js";
+import type { TaskDocument } from "../models/taskModel.js";
+import type { TaskFileDocument } from "../models/taskFileModel.js";
+import type { UserFileDocument } from "../models/userFileModel.js";
+import type { ProjectDocument } from "../models/projectModel.js";
 import type {
   FileTemplateView,
   TaskFileSolutionView,
@@ -20,7 +25,9 @@ export const toIdString = (
   return value.toString();
 };
 
-export const toFileTemplateView = (fileTemplate: any): FileTemplateView => ({
+export const toFileTemplateView = (
+  fileTemplate: FileTemplateDocument,
+): FileTemplateView => ({
   _id: toIdString(fileTemplate._id),
   projectId: toIdString(fileTemplate.projectId),
   path: fileTemplate.path,
@@ -30,7 +37,7 @@ export const toFileTemplateView = (fileTemplate: any): FileTemplateView => ({
 });
 
 export const toTaskView = (
-  task: any,
+  task: TaskDocument,
   fileTemplateMap?: Map<string, FileTemplateView>,
 ): TaskView => {
   const mappedFiles = (task.fileId ?? [])
@@ -60,29 +67,35 @@ export const toTaskView = (
 };
 
 export const toTaskFileSolutionView = (
-  solution: any,
+  solution: TaskFileDocument,
 ): TaskFileSolutionView => ({
   _id: toIdString(solution._id),
   taskId: toIdString(solution.taskId),
-  fileId: toFileTemplateView(solution.fileId),
+  fileId: toFileTemplateView(
+    solution.fileId as unknown as FileTemplateDocument,
+  ),
   content: solution.content,
   createdAt: solution.createdAt,
   updatedAt: solution.updatedAt,
 });
 
 export const toUserWorkspaceFileView = (
-  userFile: any,
+  userFile: UserFileDocument,
 ): UserWorkspaceFileView => ({
   _id: toIdString(userFile._id),
   userId: toIdString(userFile.userId),
   projectId: toIdString(userFile.projectId),
-  fileId: toFileTemplateView(userFile.fileId),
+  fileId: toFileTemplateView(
+    userFile.fileId as unknown as FileTemplateDocument,
+  ),
   content: userFile.content,
   createdAt: userFile.createdAt,
   updatedAt: userFile.updatedAt,
 });
 
-export const toProjectSummaryView = (project: any): ProjectSummaryView => ({
+export const toProjectSummaryView = (
+  project: ProjectDocument,
+): ProjectSummaryView => ({
   _id: toIdString(project._id),
   title: project.title,
   description: project.description,

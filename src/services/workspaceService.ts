@@ -101,7 +101,7 @@ export const saveUserFile = async ({
   const updatedUserFile = await UserFile.findOneAndUpdate(
     { userId, projectId, fileId },
     {
-      $set: { content: newContent, userId, projectId, fileId },
+      $set: { content: newContent },
     },
     {
       new: true,
