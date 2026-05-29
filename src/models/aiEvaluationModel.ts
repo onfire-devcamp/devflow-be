@@ -18,6 +18,8 @@ export interface AIEvaluationDocument extends Document {
   score: number;
   passStatus: AIEvaluationPassStatus;
   feedback: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const aiEvaluationSchema = new Schema<AIEvaluationDocument>(

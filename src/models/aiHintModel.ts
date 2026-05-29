@@ -10,6 +10,8 @@ export interface AIHintDocument extends Document {
   type: AIHintType;
   selectedCode: string;
   aiResponse: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const aiHintSchema = new Schema<AIHintDocument>(
