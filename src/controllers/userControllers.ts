@@ -1,7 +1,6 @@
-// src/controllers/userControllers.ts
 import type { Request, Response } from "express";
 import User from "../models/userModel.js";
-import jwt from "jsonwebtoken";
+import type { AccessTokenPayload } from "../utils/tokenUtils.js";
 import type {
   EmptyObject,
   RegisterPayload,
@@ -15,11 +14,12 @@ import {
   createUserService,
   googleAuthService,
 } from "../services/userServices.js";
-import { AuthenticationError, BadRequestError } from "../utils/customErrors.ts";
+import { AuthenticationError, BadRequestError } from "../utils/customErrors.js";
+import { setRefreshTokenCookie } from "../utils/cookieUtils.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const serverError = (res: Response, context: string, error: unknown) => {
+const serverError = (res: Response, context: string, error: unknown): void => {
   console.error(`[${context}]`, error);
   res.status(500).json({ message: "Internal server error" });
 };
@@ -37,7 +37,7 @@ export const getUser = async (
   }
 };
 
-// POST /users (Register)
+// POST /users — Register
 export const createUser = async (
   req: Request<EmptyObject, unknown, RegisterPayload, UserQuery>,
   res: Response,
@@ -57,14 +57,18 @@ export const createUser = async (
       return;
     }
 
-    const result = await createUserService({
+    const { accessToken, refreshToken, user } = await createUserService({
       email,
       password,
       username,
       avatarUrl,
       skills,
     });
-    res.status(201).json({ message: "Account created!", ...result });
+
+    setRefreshTokenCookie(res, refreshToken);
+    res
+      .status(201)
+      .json({ message: "Account created!", token: accessToken, user });
   } catch (error) {
     if (error instanceof BadRequestError) {
       res.status(error.statusCode).json({ message: error.message });
@@ -80,10 +84,8 @@ export const updateProfile = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const authenticatedUser = req.user as jwt.JwtPayload;
-    const id = authenticatedUser?.userId;
-
-    const user = await User.findByIdAndUpdate(id, req.body, {
+    const { userId } = req.user as AccessTokenPayload;
+    const user = await User.findByIdAndUpdate(userId, req.body, {
       new: true,
       runValidators: true,
     });
@@ -99,10 +101,8 @@ export const deleteProfile = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const authenticatedUser = req.user as jwt.JwtPayload;
-    const id = authenticatedUser?.userId;
-
-    await User.findByIdAndDelete(id);
+    const { userId } = req.user as AccessTokenPayload;
+    await User.findByIdAndDelete(userId);
     res
       .status(200)
       .json({ message: "Your account has been successfully deleted." });
@@ -126,8 +126,15 @@ export const loginUser = async (
       return;
     }
 
-    const result = await loginUserService({ email, password });
-    res.status(200).json({ message: "Login successful!", ...result });
+    const { accessToken, refreshToken, user } = await loginUserService({
+      email,
+      password,
+    });
+
+    setRefreshTokenCookie(res, refreshToken);
+    res
+      .status(200)
+      .json({ message: "Login successful!", token: accessToken, user });
   } catch (error) {
     if (error instanceof AuthenticationError) {
       res.status(error.statusCode).json({ message: error.message });
@@ -143,17 +150,22 @@ export const googleAuth = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const { accessToken } = req.body;
+    const { accessToken: googleAccessToken } = req.body;
 
-    if (!accessToken?.trim()) {
+    if (!googleAccessToken?.trim()) {
       res.status(400).json({ message: "Access token is required." });
       return;
     }
 
-    const result = await googleAuthService(accessToken);
-    res
-      .status(200)
-      .json({ message: "Google authentication successful!", ...result });
+    const { accessToken, refreshToken, user } =
+      await googleAuthService(googleAccessToken);
+
+    setRefreshTokenCookie(res, refreshToken);
+    res.status(200).json({
+      message: "Google authentication successful!",
+      token: accessToken,
+      user,
+    });
   } catch (error) {
     if (
       error instanceof AuthenticationError ||

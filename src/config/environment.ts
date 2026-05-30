@@ -13,6 +13,9 @@ export const env = {
   MONGODB_URL: require("MONGODB_URL"),
   JWT_SECRET: require("JWT_SECRET"),
   JWT_EXPIRES_IN: require("JWT_EXPIRES_IN"),
+  REFRESH_TOKEN_SECRET: require("REFRESH_TOKEN_SECRET"),
+  REFRESH_TOKEN_EXPIRES_IN: require("REFRESH_TOKEN_EXPIRES_IN"),
   SALT_ROUNDS: Number(process.env.SALT_ROUNDS) || 10,
   CORS_ORIGIN: process.env.CORS_ORIGIN ?? "http://localhost:5173",
+  NODE_ENV: process.env.NODE_ENV ?? "development",
 };
