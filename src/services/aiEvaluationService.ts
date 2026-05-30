@@ -8,6 +8,7 @@ import { BadRequestError } from "../utils/customErrors.js";
 import type { AIEvaluationView } from "../types/aiTypes.js";
 import type { AIEvaluationDocument } from "../models/aiEvaluationModel.js";
 import { isValidObjectId } from "mongoose";
+import { SchemaType } from "@google/generative-ai";
 export const submitTaskForEvaluation = async (
   userId: string,
   projectId: string,
@@ -32,15 +33,14 @@ export const submitTaskForEvaluation = async (
   const prompt = `Compare the expected solutions to the user's code for task ${taskId}:\n\n${comparisons}`;
 
   const schema = {
-    type: "OBJECT",
+    type: SchemaType.OBJECT,
     properties: {
-      score: { type: "number" },
-      passStatus: { type: "string" },
-      feedback: { type: "string" },
+      score: { type: SchemaType.NUMBER },
+      passStatus: { type: SchemaType.STRING },
+      feedback: { type: SchemaType.STRING },
     },
     required: ["score", "passStatus", "feedback"],
-    additionalProperties: false,
-  } as const;
+  };
 
   const structured = await GeminiClient.generateStructuredResponse(
     prompt,
