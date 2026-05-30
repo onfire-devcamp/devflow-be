@@ -40,6 +40,6 @@ export const requestHintOrExplanation = async (
     selectedCode,
     aiResponse,
   });
-
+  await saved.populate("fileId");
   return toAIHintView(saved as unknown as AIHintDocument);
 };

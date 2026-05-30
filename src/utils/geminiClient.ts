@@ -1,14 +1,72 @@
-import fetch from "node-fetch";
-
 type ChatHistoryPart = { text: string };
 type ChatHistoryItem = { role: string; parts: ChatHistoryPart[] };
+
+type GeminiPart = { text: string };
+type GeminiContent = { role: string; parts: GeminiPart[] };
+
+type GeminiGenerateContentResponse = {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
+    };
+  }>;
+};
+
+type GeminiResponseSchema = {
+  type: string;
+  properties?: Record<string, unknown>;
+  required?: string[];
+  additionalProperties?: boolean;
+};
 
 class GeminiClient {
   private static instance: GeminiClient | null = null;
   private apiKey: string | undefined;
+  private model: string;
 
   private constructor() {
     this.apiKey = process.env.GEMINI_API_KEY;
+    this.model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  }
+
+  private buildUrl(): string {
+    if (!this.apiKey) {
+      throw new Error("GEMINI_API_KEY is not defined.");
+    }
+
+    return `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+  }
+
+  private extractText(response: GeminiGenerateContentResponse): string {
+    const text = response.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text ?? "")
+      .join("")
+      .trim();
+
+    return text ?? "";
+  }
+
+  private async generateContent(
+    payload: Record<string, unknown>,
+  ): Promise<GeminiGenerateContentResponse> {
+    const res = await fetch(this.buildUrl(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(
+        `Gemini request failed with status ${res.status}: ${errorText}`,
+      );
+    }
+
+    return (await res.json()) as GeminiGenerateContentResponse;
   }
 
   public static getInstance(): GeminiClient {
@@ -20,24 +78,23 @@ class GeminiClient {
     prompt: string,
     systemInstruction: string,
   ): Promise<string> {
-    if (!this.apiKey) {
-      return `${systemInstruction}\n\n[Mocked Response] ${prompt.slice(0, 120)}`;
-    }
-
-    const res = await fetch("https://api.example.com/generate", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        "Content-Type": "application/json",
+    const response = await this.generateContent({
+      systemInstruction: {
+        parts: [{ text: systemInstruction }],
       },
-      body: JSON.stringify({ prompt: `${systemInstruction}\n\n${prompt}` }),
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: prompt }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 1024,
+      },
     });
-    const json = (await res.json()) as unknown;
-    if (typeof json === "object" && json !== null && "output" in json) {
-      const out = (json as Record<string, unknown>)["output"];
-      return String(out ?? "");
-    }
-    return "";
+
+    return this.extractText(response);
   }
 
   public async generateChatResponse(
@@ -45,31 +102,29 @@ class GeminiClient {
     newPrompt: string,
     systemInstruction: string,
   ): Promise<string> {
-    if (!this.apiKey) {
-      const convo = history
-        .map((h) => `${h.role}: ${h.parts.map((p) => p.text).join("\n")}`)
-        .join("\n");
-      return `${systemInstruction}\n\n[Mocked Chat Reply to] ${newPrompt}\n\n[Context]\n${convo}`;
-    }
-
-    const res = await fetch("https://api.example.com/chat", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        "Content-Type": "application/json",
+    const contents: GeminiContent[] = [
+      ...history.map((item) => ({
+        role: item.role === "mentor" ? "model" : "user",
+        parts: item.parts.map((part) => ({ text: part.text })),
+      })),
+      {
+        role: "user",
+        parts: [{ text: newPrompt }],
       },
-      body: JSON.stringify({
-        history,
-        prompt: newPrompt,
-        system: systemInstruction,
-      }),
+    ];
+
+    const response = await this.generateContent({
+      systemInstruction: {
+        parts: [{ text: systemInstruction }],
+      },
+      contents,
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 1024,
+      },
     });
-    const json = (await res.json()) as unknown;
-    if (typeof json === "object" && json !== null && "output" in json) {
-      const out = (json as Record<string, unknown>)["output"];
-      return String(out ?? "");
-    }
-    return "";
+
+    return this.extractText(response);
   }
 
   public async generateStructuredResponse(
@@ -77,30 +132,34 @@ class GeminiClient {
     schema: unknown,
     systemInstruction: string,
   ): Promise<unknown> {
-    if (!this.apiKey) {
-      return {
-        score: 7,
-        passStatus: "PASS",
-        feedback: "Mock: Good match to expected solution.",
-      };
+    const response = await this.generateContent({
+      systemInstruction: {
+        parts: [{ text: systemInstruction }],
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: prompt }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 512,
+        responseMimeType: "application/json",
+        responseSchema: schema as GeminiResponseSchema,
+      },
+    });
+
+    const text = this.extractText(response);
+    if (!text) {
+      throw new Error("Gemini returned an empty structured response.");
     }
 
-    const res = await fetch("https://api.example.com/structured", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        prompt: `${systemInstruction}\n\n${prompt}`,
-        schema,
-      }),
-    });
-    const json = (await res.json()) as unknown;
-    if (typeof json === "object" && json !== null && "output" in json) {
-      return (json as Record<string, unknown>)["output"] ?? null;
+    try {
+      return JSON.parse(text) as unknown;
+    } catch {
+      return text;
     }
-    return null;
   }
 }
 

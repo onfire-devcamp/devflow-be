@@ -31,7 +31,7 @@ export const submitTaskForEvaluation = async (
   const prompt = `Compare the expected solutions to the user's code for task ${taskId}:\n\n${comparisons}`;
 
   const schema = {
-    type: "object",
+    type: "OBJECT",
     properties: {
       score: { type: "number" },
       passStatus: { type: "string" },
@@ -40,11 +40,23 @@ export const submitTaskForEvaluation = async (
     required: ["score", "passStatus", "feedback"],
   } as const;
 
-  const structured = await GeminiClient.generateStructuredResponse(
+  let structured = await GeminiClient.generateStructuredResponse(
     prompt,
     schema,
     EVALUATOR_SYSTEM_PROMPT,
   );
+
+  if (typeof structured === "string") {
+    const cleanedText = structured
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .trim();
+    try {
+      structured = JSON.parse(cleanedText);
+    } catch (e) {
+      throw new BadRequestError("Failed to parse Gemini JSON output.");
+    }
+  }
 
   const result = structured as unknown as {
     score?: number;
