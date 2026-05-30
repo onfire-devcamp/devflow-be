@@ -30,11 +30,13 @@
     "dotenv": "^17.4.2",
     "env": "^0.0.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.1.1",
     "mongoose": "^9.4.1",
     "node-cron": "^4.1.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.2",

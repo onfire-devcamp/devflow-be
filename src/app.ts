@@ -4,6 +4,7 @@ import "dotenv/config";
 import userRoute from "./routes/userRoute.ts";
 import cors from "cors";
 import activityRoute from "./routes/activityRoute.ts";
+import aiRoute from "./routes/aiRoute.ts";
 
 const app = express();
 app.use(cors());
@@ -14,5 +15,6 @@ app.get("/", async (req: Request, res: Response) => {
 
 app.use("/api/user", userRoute);
 app.use("/api/activity", activityRoute);
+app.use("/api/ai", aiRoute);
 
 export default app;
