@@ -5,6 +5,7 @@ import { sendMessage } from "../services/aiChatService.js";
 import { requestHintOrExplanation } from "../services/aiHintService.js";
 import { submitTaskForEvaluation } from "../services/aiEvaluationService.js";
 import { BadRequestError } from "../utils/customErrors.ts";
+import { handleControllerError } from "../utils/responseUtils.js";
 
 interface ChatBody {
   projectId: string;
@@ -35,16 +36,6 @@ const getAuthenticatedUserId = (req: Request): string => {
   }
 
   return userId;
-};
-
-const handleControllerError = (res: Response, error: unknown): void => {
-  const message = error instanceof Error ? error.message : "Unexpected error";
-  const statusCode =
-    typeof error === "object" && error !== null && "statusCode" in error
-      ? Number((error as Record<string, unknown>).statusCode)
-      : 500;
-
-  res.status(statusCode).json({ success: false, message });
 };
 
 export const chatController = async (

@@ -1,5 +1,3 @@
-import type { NextFunction, Request, Response } from "express";
-import type { ZodSchema } from "zod";
 import { z } from "zod";
 
 const objectIdSchema = z.string().trim().min(1, "Must be a non-empty string");
@@ -23,25 +21,3 @@ export const evaluationBodySchema = z.object({
   projectId: objectIdSchema,
   taskId: objectIdSchema,
 });
-
-const formatZodError = (error: z.ZodError): string =>
-  error.issues
-    .map((issue) => `${issue.path.join(".") || "body"}: ${issue.message}`)
-    .join("; ");
-
-export const validateBody = <T>(schema: ZodSchema<T>) => {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    const result = schema.safeParse(req.body);
-
-    if (!result.success) {
-      res.status(400).json({
-        success: false,
-        message: `Invalid request body: ${formatZodError(result.error)}`,
-      });
-      return;
-    }
-
-    req.body = result.data as Request["body"];
-    next();
-  };
-};

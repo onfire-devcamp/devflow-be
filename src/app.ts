@@ -5,6 +5,8 @@ import userRoute from "./routes/userRoute.ts";
 import cors from "cors";
 import activityRoute from "./routes/activityRoute.ts";
 import aiRoute from "./routes/aiRoute.ts";
+import projectRoute from "./routes/projectRoute.js";
+import workspaceRoute from "./routes/workspaceRoute.js";
 
 const app = express();
 app.use(cors());
@@ -16,5 +18,7 @@ app.get("/", async (req: Request, res: Response) => {
 app.use("/api/user", userRoute);
 app.use("/api/activity", activityRoute);
 app.use("/api/ai", aiRoute);
+app.use("/api/project", projectRoute);
+app.use("/api/workspace", workspaceRoute);
 
 export default app;

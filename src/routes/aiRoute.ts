@@ -10,8 +10,8 @@ import {
   chatBodySchema,
   evaluationBodySchema,
   hintBodySchema,
-  validateBody,
 } from "../middlewares/aiValidationMiddleware.js";
+import { validateBody } from "../middlewares/validationMiddleware.js";
 
 const router = express.Router();
 
