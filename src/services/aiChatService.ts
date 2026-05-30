@@ -6,13 +6,14 @@ import { getTaskDetails } from "./../services/projectService.js";
 import type { AIChatView } from "../types/aiTypes.js";
 import type { AIChatDocument } from "../models/aiChatModel.js";
 import { BadRequestError } from "../utils/customErrors.js";
+import { isValidObjectId } from "mongoose";
 
 export const getChatHistory = async (
   userId: string,
   projectId: string,
   taskId: string,
 ): Promise<AIChatView[]> => {
-  if (![userId, projectId, taskId].every((id) => id && id.length > 0)) {
+  if (![userId, projectId, taskId].every(isValidObjectId)) {
     throw new BadRequestError("Invalid identifiers for chat history.");
   }
 
@@ -29,6 +30,10 @@ export const sendMessage = async (
   taskId: string,
   message: string,
 ): Promise<AIChatView> => {
+  if (![userId, projectId, taskId].every(isValidObjectId)) {
+    throw new BadRequestError("Invalid identifiers for chat message.");
+  }
+
   if (!message || message.trim().length === 0)
     throw new BadRequestError("Message is empty.");
 

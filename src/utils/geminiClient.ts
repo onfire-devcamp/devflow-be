@@ -1,72 +1,27 @@
+import {
+  GoogleGenerativeAI,
+  type GenerativeModel,
+  type ResponseSchema,
+} from "@google/generative-ai";
+
 type ChatHistoryPart = { text: string };
 type ChatHistoryItem = { role: string; parts: ChatHistoryPart[] };
 
-type GeminiPart = { text: string };
-type GeminiContent = { role: string; parts: GeminiPart[] };
-
-type GeminiGenerateContentResponse = {
-  candidates?: Array<{
-    content?: {
-      parts?: Array<{
-        text?: string;
-      }>;
-    };
-  }>;
-};
-
-type GeminiResponseSchema = {
-  type: string;
-  properties?: Record<string, unknown>;
-  required?: string[];
-  additionalProperties?: boolean;
-};
-
 class GeminiClient {
   private static instance: GeminiClient | null = null;
-  private apiKey: string | undefined;
-  private model: string;
+  private model: GenerativeModel;
 
   private constructor() {
-    this.apiKey = process.env.GEMINI_API_KEY;
-    this.model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-  }
+    const apiKey = process.env.GEMINI_API_KEY;
 
-  private buildUrl(): string {
-    if (!this.apiKey) {
+    if (!apiKey) {
       throw new Error("GEMINI_API_KEY is not defined.");
     }
 
-    return `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
-  }
+    const googleGenerativeAI = new GoogleGenerativeAI(apiKey);
+    const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
-  private extractText(response: GeminiGenerateContentResponse): string {
-    const text = response.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text ?? "")
-      .join("")
-      .trim();
-
-    return text ?? "";
-  }
-
-  private async generateContent(
-    payload: Record<string, unknown>,
-  ): Promise<GeminiGenerateContentResponse> {
-    const res = await fetch(this.buildUrl(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(
-        `Gemini request failed with status ${res.status}: ${errorText}`,
-      );
-    }
-
-    return (await res.json()) as GeminiGenerateContentResponse;
+    this.model = googleGenerativeAI.getGenerativeModel({ model: modelName });
   }
 
   public static getInstance(): GeminiClient {
@@ -78,10 +33,8 @@ class GeminiClient {
     prompt: string,
     systemInstruction: string,
   ): Promise<string> {
-    const response = await this.generateContent({
-      systemInstruction: {
-        parts: [{ text: systemInstruction }],
-      },
+    const result = await this.model.generateContent({
+      systemInstruction,
       contents: [
         {
           role: "user",
@@ -94,7 +47,7 @@ class GeminiClient {
       },
     });
 
-    return this.extractText(response);
+    return result.response.text();
   }
 
   public async generateChatResponse(
@@ -102,7 +55,7 @@ class GeminiClient {
     newPrompt: string,
     systemInstruction: string,
   ): Promise<string> {
-    const contents: GeminiContent[] = [
+    const contents = [
       ...history.map((item) => ({
         role: item.role === "mentor" ? "model" : "user",
         parts: item.parts.map((part) => ({ text: part.text })),
@@ -113,10 +66,8 @@ class GeminiClient {
       },
     ];
 
-    const response = await this.generateContent({
-      systemInstruction: {
-        parts: [{ text: systemInstruction }],
-      },
+    const result = await this.model.generateContent({
+      systemInstruction,
       contents,
       generationConfig: {
         temperature: 0.4,
@@ -124,7 +75,7 @@ class GeminiClient {
       },
     });
 
-    return this.extractText(response);
+    return result.response.text();
   }
 
   public async generateStructuredResponse(
@@ -132,10 +83,8 @@ class GeminiClient {
     schema: unknown,
     systemInstruction: string,
   ): Promise<unknown> {
-    const response = await this.generateContent({
-      systemInstruction: {
-        parts: [{ text: systemInstruction }],
-      },
+    const result = await this.model.generateContent({
+      systemInstruction,
       contents: [
         {
           role: "user",
@@ -146,11 +95,11 @@ class GeminiClient {
         temperature: 0.2,
         maxOutputTokens: 512,
         responseMimeType: "application/json",
-        responseSchema: schema as GeminiResponseSchema,
+        responseSchema: schema as ResponseSchema,
       },
     });
 
-    const text = this.extractText(response);
+    const text = result.response.text();
     if (!text) {
       throw new Error("Gemini returned an empty structured response.");
     }
@@ -158,7 +107,7 @@ class GeminiClient {
     try {
       return JSON.parse(text) as unknown;
     } catch {
-      return text;
+      throw new Error("Gemini returned invalid JSON for structured output.");
     }
   }
 }

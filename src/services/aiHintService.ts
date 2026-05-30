@@ -6,6 +6,7 @@ import type { AIHintDocument } from "../models/aiHintModel.js";
 import { getUserWorkspace } from "./workspaceService.js";
 import { BadRequestError, NotFoundError } from "../utils/customErrors.js";
 import type { AIHintView } from "../types/aiTypes.js";
+import { isValidObjectId } from "mongoose";
 
 export const requestHintOrExplanation = async (
   userId: string,
@@ -16,7 +17,7 @@ export const requestHintOrExplanation = async (
   selectedCode: string,
   userQuestion?: string,
 ): Promise<AIHintView> => {
-  if (![userId, projectId, taskId, fileId].every((id) => id && id.length > 0)) {
+  if (![userId, projectId, taskId, fileId].every(isValidObjectId)) {
     throw new BadRequestError("Invalid identifiers for hint request.");
   }
 

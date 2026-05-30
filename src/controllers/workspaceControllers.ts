@@ -8,6 +8,7 @@ import {
   saveUserFile,
 } from "../services/workspaceService.js";
 import { BadRequestError } from "../utils/customErrors.ts";
+import { getAuthenticatedUserId } from "../utils/authUtils.ts";
 import { handleControllerError } from "../utils/responseUtils.js";
 
 interface InitializeWorkspaceBody {
@@ -25,17 +26,6 @@ interface SaveUserFileBody {
   fileId: string;
   newContent: string;
 }
-
-const getAuthenticatedUserId = (req: Pick<Request, "user">): string => {
-  const authenticatedUser = req.user as jwt.JwtPayload;
-  const userId = authenticatedUser?.userId;
-
-  if (!userId || typeof userId !== "string") {
-    throw new BadRequestError("Invalid authenticated user context.");
-  }
-
-  return userId;
-};
 
 export const initializeWorkspaceController = async (
   req: Request<

@@ -7,12 +7,13 @@ import { getTaskDetails } from "./projectService.js";
 import { BadRequestError } from "../utils/customErrors.js";
 import type { AIEvaluationView } from "../types/aiTypes.js";
 import type { AIEvaluationDocument } from "../models/aiEvaluationModel.js";
+import { isValidObjectId } from "mongoose";
 export const submitTaskForEvaluation = async (
   userId: string,
   projectId: string,
   taskId: string,
 ): Promise<AIEvaluationView> => {
-  if (![userId, projectId, taskId].every((id) => id && id.length > 0)) {
+  if (![userId, projectId, taskId].every(isValidObjectId)) {
     throw new BadRequestError("Invalid identifiers for evaluation.");
   }
 
@@ -38,25 +39,14 @@ export const submitTaskForEvaluation = async (
       feedback: { type: "string" },
     },
     required: ["score", "passStatus", "feedback"],
+    additionalProperties: false,
   } as const;
 
-  let structured = await GeminiClient.generateStructuredResponse(
+  const structured = await GeminiClient.generateStructuredResponse(
     prompt,
     schema,
     EVALUATOR_SYSTEM_PROMPT,
   );
-
-  if (typeof structured === "string") {
-    const cleanedText = structured
-      .replace(/```json/gi, "")
-      .replace(/```/g, "")
-      .trim();
-    try {
-      structured = JSON.parse(cleanedText);
-    } catch (e) {
-      throw new BadRequestError("Failed to parse Gemini JSON output.");
-    }
-  }
 
   const result = structured as unknown as {
     score?: number;
@@ -65,7 +55,15 @@ export const submitTaskForEvaluation = async (
   };
 
   if (typeof result !== "object" || result == null) {
-    throw new BadRequestError("Invalid evaluation response from AI.");
+    throw new Error("Invalid evaluation response from AI.");
+  }
+
+  if (
+    typeof result.score !== "number" ||
+    (result.passStatus !== "PASS" && result.passStatus !== "FAIL") ||
+    typeof result.feedback !== "string"
+  ) {
+    throw new Error("Invalid evaluation response from AI.");
   }
 
   const score = Number(result.score ?? 0);

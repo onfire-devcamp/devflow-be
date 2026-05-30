@@ -4,7 +4,7 @@ import type { ParsedQs } from "qs";
 import { sendMessage } from "../services/aiChatService.js";
 import { requestHintOrExplanation } from "../services/aiHintService.js";
 import { submitTaskForEvaluation } from "../services/aiEvaluationService.js";
-import { BadRequestError } from "../utils/customErrors.ts";
+import { getAuthenticatedUserId } from "../utils/authUtils.ts";
 import { handleControllerError } from "../utils/responseUtils.js";
 
 interface ChatBody {
@@ -26,17 +26,6 @@ interface EvaluationBody {
   projectId: string;
   taskId: string;
 }
-
-const getAuthenticatedUserId = (req: Request): string => {
-  const authenticatedUser = req.user as jwt.JwtPayload;
-  const userId = authenticatedUser?.userId;
-
-  if (!userId || typeof userId !== "string") {
-    throw new BadRequestError("Invalid authenticated user context.");
-  }
-
-  return userId;
-};
 
 export const chatController = async (
   req: Request<Record<string, string>, unknown, ChatBody, ParsedQs>,
