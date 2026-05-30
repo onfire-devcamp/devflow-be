@@ -15,6 +15,14 @@ import type {
   UserProgressView,
   UserWorkspaceFileView,
 } from "../types/workspaceTypes.js";
+import type { AIChatDocument } from "../models/aiChatModel.js";
+import type { AIHintDocument } from "../models/aiHintModel.js";
+import type { AIEvaluationDocument } from "../models/aiEvaluationModel.js";
+import type {
+  AIChatView,
+  AIHintView,
+  AIEvaluationView,
+} from "../types/aiTypes.js";
 import { DataIntegrityError } from "./customErrors.ts";
 
 type TaskFileReference =
@@ -98,6 +106,19 @@ export const toTaskFileSolutionView = (
   updatedAt: solution.updatedAt,
 });
 
+export const toProjectSummaryView = (
+  project: ProjectDocument,
+): ProjectSummaryView => ({
+  _id: toIdString(project._id),
+  title: project.title,
+  description: project.description,
+  level: project.level,
+  previewUrl: project.previewUrl,
+  systemFlowUrl: project.systemFlowUrl,
+  createdAt: project.createdAt,
+  updatedAt: project.updatedAt,
+});
+
 export const toUserWorkspaceFileView = (
   userFile: UserFileDocument,
 ): UserWorkspaceFileView => ({
@@ -127,15 +148,42 @@ export const toUserProgressView = (
   updatedAt: progress.updatedAt,
 });
 
-export const toProjectSummaryView = (
-  project: ProjectDocument,
-): ProjectSummaryView => ({
-  _id: toIdString(project._id),
-  title: project.title,
-  description: project.description,
-  level: project.level,
-  previewUrl: project.previewUrl,
-  systemFlowUrl: project.systemFlowUrl,
-  createdAt: project.createdAt,
-  updatedAt: project.updatedAt,
+export const toAIChatView = (chat: AIChatDocument): AIChatView => ({
+  _id: toIdString(chat._id),
+  userId: toIdString(chat.userId),
+  projectId: toIdString(chat.projectId),
+  taskId: toIdString(chat.taskId),
+  message: chat.message,
+  role: chat.role as AIChatView["role"],
+  createdAt: chat.createdAt,
+  updatedAt: chat.updatedAt,
+});
+
+export const toAIHintView = (hint: AIHintDocument): AIHintView => ({
+  _id: toIdString(hint._id),
+  userId: toIdString(hint.userId),
+  projectId: toIdString(hint.projectId),
+  taskId: toIdString(hint.taskId),
+  fileId: toFileTemplateView(hint.fileId as unknown as FileTemplateDocument),
+  type: hint.type as AIHintView["type"],
+  selectedCode: hint.selectedCode,
+  aiResponse: hint.aiResponse,
+  createdAt: hint.createdAt,
+  updatedAt: hint.updatedAt,
+});
+
+export const toAIEvaluationView = (
+  evalDoc: AIEvaluationDocument,
+): AIEvaluationView => ({
+  _id: toIdString(evalDoc._id),
+  userId: toIdString(evalDoc.userId),
+  projectId: toIdString(evalDoc.projectId),
+  taskId: toIdString(evalDoc.taskId),
+  type: evalDoc.type as AIEvaluationView["type"],
+  inputData: evalDoc.inputData,
+  score: evalDoc.score,
+  passStatus: evalDoc.passStatus as AIEvaluationView["passStatus"],
+  feedback: evalDoc.feedback,
+  createdAt: evalDoc.createdAt,
+  updatedAt: evalDoc.updatedAt,
 });

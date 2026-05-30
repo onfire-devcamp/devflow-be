@@ -8,6 +8,8 @@ export interface AIChatDocument extends Document {
   taskId: mongoose.Types.ObjectId;
   message: string;
   role: AIChatRole;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const aiChatSchema = new Schema<AIChatDocument>(
