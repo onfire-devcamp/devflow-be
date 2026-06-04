@@ -85,7 +85,9 @@ export const toTaskView = (
     order: task.order,
     instructions: task.instructions,
     difficulty: task.difficulty,
-    concepts: task.concepts,
+    concepts: Array.isArray(task.concepts)
+      ? task.concepts.join(", ")
+      : task.concepts,
     skillCategory: task.skillCategory,
     skillPoints: task.skillPoints,
     createdAt: task.createdAt,

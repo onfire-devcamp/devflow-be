@@ -3,6 +3,12 @@ import mongoose, { Schema, Document } from "mongoose";
 export type TaskDifficulty = "Beginner" | "Intermediate" | "Advanced";
 export type SkillCategory = "Frontend" | "Backend" | "Database" | "DevOps";
 
+export interface TaskMcq {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+
 export interface TaskDocument extends Document {
   moduleId: mongoose.Types.ObjectId;
   fileId: mongoose.Types.ObjectId[];
@@ -11,7 +17,8 @@ export interface TaskDocument extends Document {
   order: number;
   instructions?: string;
   difficulty: TaskDifficulty;
-  concepts?: string;
+  concepts?: string[];
+  mcq?: TaskMcq;
   skillCategory: SkillCategory;
   skillPoints: number;
   createdAt: Date;
@@ -51,7 +58,12 @@ const taskSchema = new Schema<TaskDocument>(
       default: "Beginner",
     },
     concepts: {
-      type: String,
+      type: [String],
+    },
+    mcq: {
+      question: { type: String, trim: true },
+      options: [{ type: String, trim: true }],
+      correctAnswer: { type: String, trim: true },
     },
     skillCategory: {
       type: String,

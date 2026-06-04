@@ -21,3 +21,10 @@ export const evaluationBodySchema = z.object({
   projectId: objectIdSchema,
   taskId: objectIdSchema,
 });
+
+export const explainToPassBodySchema = z.object({
+  projectId: objectIdSchema,
+  taskId: objectIdSchema,
+  mcqAnswer: z.string().trim().min(1, "mcqAnswer is required"),
+  explanation: z.string().trim().min(1, "explanation is required"),
+});

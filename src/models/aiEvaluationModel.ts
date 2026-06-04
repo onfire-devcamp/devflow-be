@@ -7,6 +7,8 @@ export interface AIEvaluationInput {
   rawText?: string;
   codeSnippet?: string;
   language?: string;
+  mcqAnswer?: string;
+  explanation?: string;
 }
 
 export interface AIEvaluationDocument extends Document {
@@ -48,6 +50,8 @@ const aiEvaluationSchema = new Schema<AIEvaluationDocument>(
       rawText: { type: String, trim: true },
       codeSnippet: { type: String },
       language: { type: String, trim: true },
+      mcqAnswer: { type: String, trim: true },
+      explanation: { type: String, trim: true },
     },
     score: {
       type: Number,
