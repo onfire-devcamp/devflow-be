@@ -7,7 +7,11 @@ import {
   buildEvaluationPrompt,
   buildExplainToPassPrompt,
 } from "../constants/aiPrompts.js";
-import { EXPLAIN_TO_PASS_RULES } from "../constants/evaluationConstant.js";
+import {
+  EXPLAIN_TO_PASS_RULES,
+  EVAL_STATUS,
+  EVAL_TYPE,
+} from "../constants/evaluationConstant.js";
 import { toAIEvaluationView, toIdString } from "../utils/mappers.js";
 import { getUserWorkspace, completeTask } from "./workspaceService.js";
 import { getTaskDetails } from "./projectService.js";
@@ -68,17 +72,21 @@ export const submitTaskForEvaluation = async (
 
   if (
     typeof result.score !== "number" ||
-    (result.passStatus !== "PASS" && result.passStatus !== "FAIL") ||
+    (result.passStatus !== EVAL_STATUS.PASS &&
+      result.passStatus !== EVAL_STATUS.FAIL) ||
     typeof result.feedback !== "string"
   ) {
     throw new Error("Invalid evaluation response from AI.");
   }
 
   const score = Number(result.score ?? 0);
-  const passStatus = result.passStatus === "PASS" ? "PASS" : "FAIL";
+  const passStatus =
+    result.passStatus === EVAL_STATUS.PASS
+      ? EVAL_STATUS.PASS
+      : EVAL_STATUS.FAIL;
   const feedback = String(result.feedback ?? "No feedback provided.");
 
-  if (passStatus === "PASS") {
+  if (passStatus === EVAL_STATUS.PASS) {
     const session = await mongoose.startSession();
     let evalDoc: AIEvaluationDocument | null = null;
     try {
@@ -116,7 +124,7 @@ export const submitTaskForEvaluation = async (
     userId,
     projectId,
     taskId,
-    type: "codeReview",
+    type: EVAL_TYPE.CODE_REVIEW,
     inputData: {},
     score,
     passStatus,
@@ -141,8 +149,8 @@ export const evaluateExplainToPass = async (
     userId,
     projectId,
     taskId,
-    type: "explainToPass",
-    passStatus: "PASS",
+    type: EVAL_TYPE.EXPLAIN_TO_PASS,
+    passStatus: EVAL_STATUS.PASS,
   }).sort({ createdAt: -1 })) as unknown as AIEvaluationDocument | null;
   if (previousPassedEvaluation) {
     return toAIEvaluationView(previousPassedEvaluation);
@@ -206,14 +214,16 @@ export const evaluateExplainToPass = async (
   );
   const totalScore = mcqScore + aiScore;
   const passStatus =
-    totalScore >= EXPLAIN_TO_PASS_RULES.PASS_SCORE ? "PASS" : "FAIL";
+    totalScore >= EXPLAIN_TO_PASS_RULES.PASS_SCORE
+      ? EVAL_STATUS.PASS
+      : EVAL_STATUS.FAIL;
   const mcqFeedback =
     mcqScore === EXPLAIN_TO_PASS_RULES.MCQ_SCORE
       ? "MCQ answered correctly."
       : "MCQ answered incorrectly.";
   const feedback = `${mcqFeedback} ${result.feedback}`;
 
-  if (passStatus === "PASS") {
+  if (passStatus === EVAL_STATUS.PASS) {
     const session = await mongoose.startSession();
     let evalDoc: AIEvaluationDocument | null = null;
     try {
