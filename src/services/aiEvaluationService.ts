@@ -5,6 +5,7 @@ import {
   EVALUATOR_SYSTEM_PROMPT,
   EXPLAIN_TO_PASS_PROMPT,
 } from "../constants/aiPrompts.js";
+import { EXPLAIN_TO_PASS_RULES } from "../constants/evaluationConstant.js";
 import { toAIEvaluationView, toIdString } from "../utils/mappers.js";
 import { getUserWorkspace, completeTask } from "./workspaceService.js";
 import { getTaskDetails } from "./projectService.js";
@@ -160,7 +161,10 @@ export const evaluateExplainToPass = async (
 
   const normalizedMcqAnswer = mcqAnswer.trim();
   const normalizedCorrectAnswer = task.mcq.correctAnswer.trim();
-  const mcqScore = normalizedMcqAnswer === normalizedCorrectAnswer ? 5 : 0;
+  const mcqScore =
+    normalizedMcqAnswer === normalizedCorrectAnswer
+      ? EXPLAIN_TO_PASS_RULES.MCQ_SCORE
+      : 0;
 
   const concepts =
     Array.isArray(task.concepts) && task.concepts.length > 0
@@ -201,11 +205,17 @@ User explanation: ${explanation.trim()}`;
     throw new Error("Invalid explain-to-pass response from AI.");
   }
 
-  const aiScore = Math.min(5, Math.max(0, Number(result.score)));
+  const aiScore = Math.min(
+    EXPLAIN_TO_PASS_RULES.AI_SCORE,
+    Math.max(0, Number(result.score)),
+  );
   const totalScore = mcqScore + aiScore;
-  const passStatus = totalScore >= 7 ? "PASS" : "FAIL";
+  const passStatus =
+    totalScore >= EXPLAIN_TO_PASS_RULES.PASS_SCORE ? "PASS" : "FAIL";
   const mcqFeedback =
-    mcqScore === 5 ? "MCQ answered correctly." : "MCQ answered incorrectly.";
+    mcqScore === EXPLAIN_TO_PASS_RULES.MCQ_SCORE
+      ? "MCQ answered correctly."
+      : "MCQ answered incorrectly.";
   const feedback = `${mcqFeedback} ${result.feedback}`;
 
   if (passStatus === "PASS") {
