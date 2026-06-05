@@ -10,3 +10,35 @@ export const EXPLAIN_TO_PASS_PROMPT = `You are a technical mentor evaluating a o
 Given the task's core concepts and the user's explanation, assess conceptual understanding.
 Return ONLY a JSON object with keys: score (0-5), feedback (string), passConcepts (boolean).
 Be concise, constructive, and focus on core concepts only.`;
+
+export const buildExplainToPassPrompt = (
+  title: string,
+  concepts: string,
+  explanation: string,
+): string => {
+  return `Task: ${title}\nCore concepts: ${concepts}\nUser explanation: ${explanation.trim()}`;
+};
+
+export const buildEvaluationPrompt = (
+  taskId: string,
+  comparisons: string,
+): string => {
+  return `Compare the expected solutions to the user's code for task ${taskId}:\n\n${comparisons}`;
+};
+
+export const buildChatSystemInstruction = (
+  basePrompt: string,
+  instructions: string,
+): string => {
+  return `${basePrompt}\n\nTask Instructions:\n${instructions}`;
+};
+
+export const buildHintPrompt = (
+  fileContent: string,
+  selectedCode: string,
+  userQuestion?: string,
+): string => {
+  const questionBlock =
+    userQuestion ?? "Explain or hint about the selected code.";
+  return `File content:\n${fileContent}\n\nSelected snippet:\n${selectedCode}\n\nQuestion:\n${questionBlock}`;
+};

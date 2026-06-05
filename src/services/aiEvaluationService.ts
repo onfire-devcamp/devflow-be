@@ -4,6 +4,8 @@ import GeminiClient from "../utils/geminiClient.js";
 import {
   EVALUATOR_SYSTEM_PROMPT,
   EXPLAIN_TO_PASS_PROMPT,
+  buildEvaluationPrompt,
+  buildExplainToPassPrompt,
 } from "../constants/aiPrompts.js";
 import { EXPLAIN_TO_PASS_RULES } from "../constants/evaluationConstant.js";
 import { toAIEvaluationView, toIdString } from "../utils/mappers.js";
@@ -25,14 +27,9 @@ export const submitTaskForEvaluation = async (
   projectId: string,
   taskId: string,
 ): Promise<AIEvaluationView> => {
-  if (![userId, projectId, taskId].every(isValidObjectId)) {
-    throw new BadRequestError("Invalid identifiers for evaluation.");
-  }
-
   const userFiles = await getUserWorkspace(userId, projectId);
   const taskDetails = await getTaskDetails(taskId);
 
-  // Build a comparison prompt
   const comparisons = taskDetails.solutions
     .map((sol) => {
       const expectedFileId = toIdString(sol.fileId._id);
@@ -41,7 +38,7 @@ export const submitTaskForEvaluation = async (
     })
     .join("\n\n---\n\n");
 
-  const prompt = `Compare the expected solutions to the user's code for task ${taskId}:\n\n${comparisons}`;
+  const prompt = buildEvaluationPrompt(taskId, comparisons);
 
   const schema = {
     type: SchemaType.OBJECT,
@@ -136,10 +133,6 @@ export const evaluateExplainToPass = async (
   mcqAnswer: string,
   explanation: string,
 ): Promise<AIEvaluationView> => {
-  if (![userId, projectId, taskId].every(isValidObjectId)) {
-    throw new BadRequestError("Invalid identifiers for explain-to-pass.");
-  }
-
   const task = await Task.findById(taskId).lean();
   if (!task) {
     throw new NotFoundError("Task not found.");
@@ -171,9 +164,11 @@ export const evaluateExplainToPass = async (
       ? task.concepts.join(", ")
       : "No explicit concepts configured.";
 
-  const prompt = `Task: ${task.title}
-Core concepts: ${concepts}
-User explanation: ${explanation.trim()}`;
+  const prompt = buildExplainToPassPrompt(
+    task.title,
+    concepts,
+    explanation.trim(),
+  );
 
   const schema = {
     type: SchemaType.OBJECT,
