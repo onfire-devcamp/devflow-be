@@ -908,7 +908,7 @@ async function createTaskArtifacts(
     order: task.order,
     instructions: task.instructions,
     difficulty: task.difficulty,
-    concepts: task.concepts,
+    concepts: task.concepts.split(",").map((concept) => concept.trim()),
     skillCategory: task.skillCategory,
     skillPoints: task.skillPoints,
   });

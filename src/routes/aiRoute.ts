@@ -1,6 +1,7 @@
 import express from "express";
 import {
   chatController,
+  explainToPassController,
   hintController,
   evaluationController,
 } from "../controllers/aiControllers.ts";
@@ -9,6 +10,7 @@ import { aiRateLimiter } from "../middlewares/aiRateLimiter.js";
 import {
   chatBodySchema,
   evaluationBodySchema,
+  explainToPassBodySchema,
   hintBodySchema,
 } from "../middlewares/aiValidationMiddleware.js";
 import { validateBody } from "../middlewares/validationMiddleware.js";
@@ -24,6 +26,11 @@ router.post(
   "/evaluate",
   validateBody(evaluationBodySchema),
   evaluationController,
+);
+router.post(
+  "/explain-to-pass",
+  validateBody(explainToPassBodySchema),
+  explainToPassController,
 );
 
 export default router;
