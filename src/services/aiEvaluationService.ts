@@ -11,7 +11,7 @@ import { getTaskDetails } from "./projectService.js";
 import { BadRequestError, NotFoundError } from "../utils/customErrors.js";
 import type { AIEvaluationView } from "../types/aiTypes.js";
 import type { AIEvaluationDocument } from "../models/aiEvaluationModel.js";
-import { isValidObjectId } from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { SchemaType } from "@google/generative-ai";
 
 type ExplainToPassAIResult = {
@@ -80,6 +80,40 @@ export const submitTaskForEvaluation = async (
   const passStatus = result.passStatus === "PASS" ? "PASS" : "FAIL";
   const feedback = String(result.feedback ?? "No feedback provided.");
 
+  if (passStatus === "PASS") {
+    const session = await mongoose.startSession();
+    let evalDoc: AIEvaluationDocument | null = null;
+    try {
+      await session.withTransaction(async () => {
+        const [createdEvalDoc] = await AIEvaluation.create(
+          [
+            {
+              userId,
+              projectId,
+              taskId,
+              type: "codeReview",
+              inputData: {},
+              score,
+              passStatus,
+              feedback,
+            },
+          ],
+          { session },
+        );
+        await completeTask(userId, projectId, taskId, session);
+        evalDoc = createdEvalDoc as unknown as AIEvaluationDocument;
+      });
+    } finally {
+      await session.endSession();
+    }
+
+    if (!evalDoc) {
+      throw new Error("Unable to create evaluation.");
+    }
+
+    return toAIEvaluationView(evalDoc);
+  }
+
   const evalDoc = (await AIEvaluation.create({
     userId,
     projectId,
@@ -90,10 +124,6 @@ export const submitTaskForEvaluation = async (
     passStatus,
     feedback,
   })) as unknown as AIEvaluationDocument;
-
-  if (passStatus === "PASS") {
-    await completeTask(userId, projectId, taskId);
-  }
 
   return toAIEvaluationView(evalDoc);
 };
@@ -112,6 +142,16 @@ export const evaluateExplainToPass = async (
   const task = await Task.findById(taskId).lean();
   if (!task) {
     throw new NotFoundError("Task not found.");
+  }
+  const previousPassedEvaluation = (await AIEvaluation.findOne({
+    userId,
+    projectId,
+    taskId,
+    type: "explainToPass",
+    passStatus: "PASS",
+  }).sort({ createdAt: -1 })) as unknown as AIEvaluationDocument | null;
+  if (previousPassedEvaluation) {
+    return toAIEvaluationView(previousPassedEvaluation);
   }
 
   if (!task.mcq?.correctAnswer) {
@@ -168,6 +208,43 @@ User explanation: ${explanation.trim()}`;
     mcqScore === 5 ? "MCQ answered correctly." : "MCQ answered incorrectly.";
   const feedback = `${mcqFeedback} ${result.feedback}`;
 
+  if (passStatus === "PASS") {
+    const session = await mongoose.startSession();
+    let evalDoc: AIEvaluationDocument | null = null;
+    try {
+      await session.withTransaction(async () => {
+        const [createdEvalDoc] = await AIEvaluation.create(
+          [
+            {
+              userId,
+              projectId,
+              taskId,
+              type: "explainToPass",
+              inputData: {
+                mcqAnswer: normalizedMcqAnswer,
+                explanation: explanation.trim(),
+              },
+              score: totalScore,
+              passStatus,
+              feedback,
+            },
+          ],
+          { session },
+        );
+        await completeTask(userId, projectId, taskId, session);
+        evalDoc = createdEvalDoc as unknown as AIEvaluationDocument;
+      });
+    } finally {
+      await session.endSession();
+    }
+
+    if (!evalDoc) {
+      throw new Error("Unable to create evaluation.");
+    }
+
+    return toAIEvaluationView(evalDoc);
+  }
+
   const evalDoc = (await AIEvaluation.create({
     userId,
     projectId,
@@ -181,10 +258,6 @@ User explanation: ${explanation.trim()}`;
     passStatus,
     feedback,
   })) as unknown as AIEvaluationDocument;
-
-  if (passStatus === "PASS") {
-    await completeTask(userId, projectId, taskId);
-  }
 
   return toAIEvaluationView(evalDoc);
 };
