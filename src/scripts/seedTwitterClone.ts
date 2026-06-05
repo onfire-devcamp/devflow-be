@@ -29,6 +29,11 @@ type SeedTask = {
   skillPoints: number;
   concepts: string;
   files: SeedFileTemplate[];
+  mcq?: {
+    question: string;
+    options: { id: string; text: string }[];
+    correctAnswer: string;
+  };
 };
 
 type SeedModule = {
@@ -126,6 +131,17 @@ const twitterCloneModules: SeedModule[] = [
         skillCategory: "Frontend",
         skillPoints: 10,
         concepts: "Vite, TypeScript, project bootstrap, build scripts",
+        mcq: {
+          question:
+            "What does the Vite dev server give you that a plain HTML file does not?",
+          options: [
+            { id: "opt_a", text: "Hot reload as you edit" },
+            { id: "opt_b", text: "Free hosting" },
+            { id: "opt_c", text: "A database" },
+            { id: "opt_d", text: "Email support" },
+          ],
+          correctAnswer: "opt_a",
+        },
         files: [
           {
             path: "package.json",
@@ -909,6 +925,7 @@ async function createTaskArtifacts(
     instructions: task.instructions,
     difficulty: task.difficulty,
     concepts: task.concepts.split(",").map((concept) => concept.trim()),
+    mcq: task.mcq,
     skillCategory: task.skillCategory,
     skillPoints: task.skillPoints,
   });

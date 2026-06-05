@@ -5,7 +5,10 @@ export type SkillCategory = "Frontend" | "Backend" | "Database" | "DevOps";
 
 export interface TaskMcq {
   question: string;
-  options: string[];
+  options: {
+    id: string;
+    text: string;
+  }[];
   correctAnswer: string;
 }
 
@@ -62,7 +65,12 @@ const taskSchema = new Schema<TaskDocument>(
     },
     mcq: {
       question: { type: String, trim: true },
-      options: [{ type: String, trim: true }],
+      options: [
+        {
+          id: { type: String, required: true, trim: true },
+          text: { type: String, required: true, trim: true },
+        },
+      ],
       correctAnswer: { type: String, trim: true },
     },
     skillCategory: {
