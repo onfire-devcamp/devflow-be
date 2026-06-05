@@ -1,6 +1,9 @@
 import AIChat from "../models/aiChatModel.js";
 import GeminiClient from "../utils/geminiClient.js";
-import { MENTOR_SYSTEM_PROMPT } from "../constants/aiPrompts.js";
+import {
+  MENTOR_SYSTEM_PROMPT,
+  buildChatSystemInstruction,
+} from "../constants/aiPrompts.js";
 import { toAIChatView } from "../utils/mappers.js";
 import { getTaskDetails } from "./../services/projectService.js";
 import type { AIChatView } from "../types/aiTypes.js";
@@ -49,7 +52,10 @@ export const sendMessage = async (
   await AIChat.create({ userId, projectId, taskId, message, role: "user" });
 
   const taskDetails = await getTaskDetails(taskId);
-  const systemInstruction = `${MENTOR_SYSTEM_PROMPT}\n\nTask Instructions:\n${taskDetails.task.instructions ?? ""}`;
+  const systemInstruction = buildChatSystemInstruction(
+    MENTOR_SYSTEM_PROMPT,
+    taskDetails.task.instructions ?? "",
+  );
 
   const replyText = await GeminiClient.generateChatResponse(
     history,

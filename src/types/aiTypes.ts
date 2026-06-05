@@ -32,6 +32,8 @@ export interface AIEvaluationInput {
   rawText?: string;
   codeSnippet?: string;
   language?: string;
+  mcqAnswer?: string;
+  explanation?: string;
 }
 
 export interface AIEvaluationView {

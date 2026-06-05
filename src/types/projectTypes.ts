@@ -33,6 +33,13 @@ export interface TaskView {
   instructions?: string;
   difficulty: TaskDifficulty;
   concepts?: string;
+  mcq?: {
+    question: string;
+    options: {
+      id: string;
+      text: string;
+    }[];
+  };
   skillCategory: SkillCategory;
   skillPoints: number;
   createdAt: Date;

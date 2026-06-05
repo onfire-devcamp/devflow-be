@@ -85,7 +85,18 @@ export const toTaskView = (
     order: task.order,
     instructions: task.instructions,
     difficulty: task.difficulty,
-    concepts: task.concepts,
+    concepts: Array.isArray(task.concepts)
+      ? task.concepts.join(", ")
+      : task.concepts,
+    mcq: task.mcq
+      ? {
+          question: task.mcq.question,
+          options: task.mcq.options.map((opt) => ({
+            id: opt.id,
+            text: opt.text,
+          })),
+        }
+      : undefined,
     skillCategory: task.skillCategory,
     skillPoints: task.skillPoints,
     createdAt: task.createdAt,

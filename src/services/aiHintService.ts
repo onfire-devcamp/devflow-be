@@ -1,6 +1,9 @@
 import AIHint from "../models/aiHintModel.js";
 import GeminiClient from "../utils/geminiClient.js";
-import { MENTOR_SYSTEM_PROMPT } from "../constants/aiPrompts.js";
+import {
+  MENTOR_SYSTEM_PROMPT,
+  buildHintPrompt,
+} from "../constants/aiPrompts.js";
 import { toAIHintView } from "../utils/mappers.js";
 import type { AIHintDocument } from "../models/aiHintModel.js";
 import { getUserWorkspace } from "./workspaceService.js";
@@ -25,7 +28,7 @@ export const requestHintOrExplanation = async (
   const target = workspaceFiles.find((f) => f.fileId._id === fileId);
   if (!target) throw new NotFoundError("User file not found in workspace.");
 
-  const prompt = `File content:\n${target.content}\n\nSelected snippet:\n${selectedCode}\n\nQuestion:\n${userQuestion ?? "Explain or hint about the selected code."}`;
+  const prompt = buildHintPrompt(target.content, selectedCode, userQuestion);
 
   const aiResponse = await GeminiClient.generateText(
     prompt,

@@ -3,7 +3,10 @@ import jwt from "jsonwebtoken";
 import type { ParsedQs } from "qs";
 import { sendMessage } from "../services/aiChatService.js";
 import { requestHintOrExplanation } from "../services/aiHintService.js";
-import { submitTaskForEvaluation } from "../services/aiEvaluationService.js";
+import {
+  evaluateExplainToPass,
+  submitTaskForEvaluation,
+} from "../services/aiEvaluationService.js";
 import { getAuthenticatedUserId } from "../utils/authUtils.ts";
 import { handleControllerError } from "../utils/responseUtils.js";
 
@@ -25,6 +28,13 @@ interface HintBody {
 interface EvaluationBody {
   projectId: string;
   taskId: string;
+}
+
+interface ExplainToPassBody {
+  projectId: string;
+  taskId: string;
+  mcqAnswer: string;
+  explanation: string;
 }
 
 export const chatController = async (
@@ -77,6 +87,28 @@ export const evaluationController = async (
     const { projectId, taskId } = req.body;
 
     const result = await submitTaskForEvaluation(userId, projectId, taskId);
+
+    res.status(200).json({ success: true, data: result });
+  } catch (error: unknown) {
+    handleControllerError(res, error);
+  }
+};
+
+export const explainToPassController = async (
+  req: Request<Record<string, string>, unknown, ExplainToPassBody, ParsedQs>,
+  res: Response,
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(req);
+    const { projectId, taskId, mcqAnswer, explanation } = req.body;
+
+    const result = await evaluateExplainToPass(
+      userId,
+      projectId,
+      taskId,
+      mcqAnswer,
+      explanation,
+    );
 
     res.status(200).json({ success: true, data: result });
   } catch (error: unknown) {
