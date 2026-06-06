@@ -1,26 +1,21 @@
 import dotenv from "dotenv";
-import { SignOptions } from "jsonwebtoken";
-dotenv.config();
-const secretKey = process.env.JWT_SECRET;
-if (!secretKey) {
-  throw new Error("FATAL ERROR: JWT_SECRET is not defined.");
-}
-const expireDay = process.env.JWT_EXPIRES_IN;
-if (!expireDay) {
-  throw new Error("FATAL ERROR: JWT_EXPIRES_IN is not defined.");
-}
-interface Env {
-  MONGODB_URL: string | undefined;
-  PORT: string | undefined;
-  JWT_SECRET: string;
-  JWT_EXPIRES_IN: SignOptions["expiresIn"];
-  SALT_ROUNDS: number;
-}
 
-export const env: Env = {
-  MONGODB_URL: process.env.MONGODB_URL,
-  PORT: process.env.PORT,
-  JWT_SECRET: secretKey,
-  JWT_EXPIRES_IN: expireDay as SignOptions["expiresIn"],
+dotenv.config({ override: true });
+
+const require = (key: string): string => {
+  const value = process.env[key];
+  if (!value) throw new Error(`FATAL: ${key} is not defined in environment.`);
+  return value;
+};
+
+export const env = {
+  PORT: process.env.PORT ?? "3000",
+  MONGODB_URL: require("MONGODB_URL"),
+  JWT_SECRET: require("JWT_SECRET"),
+  JWT_EXPIRES_IN: require("JWT_EXPIRES_IN"),
+  REFRESH_TOKEN_SECRET: require("REFRESH_TOKEN_SECRET"),
+  REFRESH_TOKEN_EXPIRES_IN: require("REFRESH_TOKEN_EXPIRES_IN"),
   SALT_ROUNDS: Number(process.env.SALT_ROUNDS) || 10,
+  CORS_ORIGIN: process.env.CORS_ORIGIN ?? "http://localhost:5173",
+  NODE_ENV: process.env.NODE_ENV ?? "development",
 };

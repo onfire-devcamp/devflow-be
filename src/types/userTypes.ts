@@ -37,3 +37,7 @@ export interface UserIdParams {
 export interface UserQuery extends ParsedQs {}
 
 export type EmptyObject = Record<string, never>;
+
+export interface GoogleAuthPayload {
+  accessToken: string;
+}

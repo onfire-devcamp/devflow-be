@@ -1,11 +1,13 @@
-// src/middlewares/authMiddleware.ts
 import type { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import {
+  verifyAccessToken,
+  type AccessTokenPayload,
+} from "../utils/tokenUtils.js";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: string | jwt.JwtPayload;
+      user?: AccessTokenPayload;
     }
   }
 }
@@ -17,24 +19,19 @@ export const protect = (
 ): void => {
   const authHeader = req.headers.authorization;
 
-  // 1. Check if header exists and format is correct
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(401).json({ message: "No access, token not found!" });
+  if (!authHeader?.startsWith("Bearer ")) {
+    res.status(401).json({ message: "Access denied. No token provided." });
     return;
   }
 
-  // 2. Extract token
   const token = authHeader.split(" ")[1];
 
-  // 3. Verify token
   try {
-    const secretKey = process.env.JWT_SECRET;
-    if (!secretKey) throw new Error("JWT_SECRET is missing");
-
-    req.user = jwt.verify(token, secretKey);
-    return next();
-  } catch (error) {
-    res.status(401).json({ message: "No access, invalid or expired token!" });
-    return;
+    req.user = verifyAccessToken(token);
+    next();
+  } catch {
+    res
+      .status(401)
+      .json({ message: "Access denied. Token is invalid or expired." });
   }
 };
