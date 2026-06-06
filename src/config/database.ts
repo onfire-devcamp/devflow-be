@@ -4,10 +4,9 @@ import { env } from "./environment.js";
 const connectDB = async (): Promise<void> => {
   try {
     await mongoose.connect(env.MONGODB_URL);
-    console.log("✅ Mongo connected!");
+    console.log(" Mongo connected!");
   } catch (error: unknown) {
-    console.error("❌ Error connecting to MongoDB:", error);
-    process.exit(1);
+    console.error(" Error connecting to MongoDB:", error);
   }
 };
 

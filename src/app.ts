@@ -8,6 +8,9 @@ import userRoute from "./routes/userRoute.ts";
 import activityRoute from "./routes/activityRoute.ts";
 import authRoute from "./routes/authRoute.ts";
 import { env } from "./config/environment.js";
+import aiRoute from "./routes/aiRoute.ts";
+import projectRoute from "./routes/projectRoute.js";
+import workspaceRoute from "./routes/workspaceRoute.js";
 
 const app = express();
 
@@ -30,5 +33,8 @@ app.get("/", (_req: Request, res: Response) => {
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/activity", activityRoute);
+app.use("/api/ai", aiRoute);
+app.use("/api/project", projectRoute);
+app.use("/api/workspace", workspaceRoute);
 
 export default app;
