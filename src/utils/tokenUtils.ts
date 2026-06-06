@@ -25,9 +25,13 @@ export const generateRefreshToken = (
   userId: Types.ObjectId | string,
   family: string,
 ): string =>
-  jwt.sign({ userId: userId.toString(), family }, env.REFRESH_TOKEN_SECRET, {
-    expiresIn: env.REFRESH_TOKEN_EXPIRES_IN as jwt.SignOptions["expiresIn"],
-  });
+  jwt.sign(
+    { userId: userId.toString(), family, jti: crypto.randomUUID() },
+    env.REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: env.REFRESH_TOKEN_EXPIRES_IN as jwt.SignOptions["expiresIn"],
+    },
+  );
 
 // SHA-256 is correct here: refresh tokens are already high-entropy (JWT signed),
 // so the slow cost of bcrypt buys nothing. SHA-256 is fast, deterministic, and
