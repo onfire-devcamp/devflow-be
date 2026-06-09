@@ -13,6 +13,15 @@ export interface AIChatView {
   updatedAt: Date;
 }
 
+export type FrontendChatSender = "user" | "ai";
+
+export interface FrontendChatMessageView {
+  id: string;
+  sender: FrontendChatSender;
+  text: string;
+  isPassAction?: boolean;
+}
+
 export type AIHintType = "hint" | "explain";
 
 export interface AIHintView {

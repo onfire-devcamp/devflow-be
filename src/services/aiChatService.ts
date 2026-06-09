@@ -4,12 +4,15 @@ import {
   MENTOR_SYSTEM_PROMPT,
   buildChatSystemInstruction,
 } from "../constants/aiPrompts.js";
-import { toAIChatView } from "../utils/mappers.js";
+import {
+  isValidObjectId,
+  toAIChatView,
+  toFrontendChatMessage,
+} from "../utils/mappers.js";
 import { getTaskDetails } from "./../services/projectService.js";
-import type { AIChatView } from "../types/aiTypes.js";
+import type { AIChatView, FrontendChatMessageView } from "../types/aiTypes.js";
 import type { AIChatDocument } from "../models/aiChatModel.js";
 import { BadRequestError } from "../utils/customErrors.js";
-import { isValidObjectId } from "mongoose";
 
 export const getChatHistory = async (
   userId: string,
@@ -25,6 +28,15 @@ export const getChatHistory = async (
     .lean()) as unknown as AIChatDocument[];
 
   return chats.map((c) => toAIChatView(c));
+};
+
+export const getChatHistoryForFrontend = async (
+  userId: string,
+  projectId: string,
+  taskId: string,
+): Promise<FrontendChatMessageView[]> => {
+  const chats = await getChatHistory(userId, projectId, taskId);
+  return chats.map((chat) => toFrontendChatMessage(chat));
 };
 
 export const sendMessage = async (

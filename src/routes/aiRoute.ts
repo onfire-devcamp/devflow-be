@@ -2,6 +2,7 @@ import express from "express";
 import {
   chatController,
   explainToPassController,
+  getChatHistoryController,
   hintController,
   evaluationController,
 } from "../controllers/aiControllers.ts";
@@ -20,6 +21,7 @@ const router = express.Router();
 router.use(protect);
 router.use(aiRateLimiter);
 
+router.get("/chat/:projectId/:taskId", getChatHistoryController);
 router.post("/chat", validateBody(chatBodySchema), chatController);
 router.post("/hint", validateBody(hintBodySchema), hintController);
 router.post(

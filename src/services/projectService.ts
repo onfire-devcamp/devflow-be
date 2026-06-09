@@ -4,6 +4,7 @@ import Module from "../models/moduleModel.js";
 import Project, { type ProjectTechStackItem } from "../models/projectModel.js";
 import Task from "../models/taskModel.js";
 import TaskFile from "../models/taskFileModel.js";
+import UserFile from "../models/userFileModel.js";
 import { BadRequestError, NotFoundError } from "../utils/customErrors.js";
 import {
   isValidObjectId,
@@ -129,6 +130,7 @@ export const getProjectRoadmap = async (
 
 export const getTaskDetails = async (
   taskId: string,
+  userId?: string,
 ): Promise<TaskDetailsView> => {
   if (!isValidObjectId(taskId)) throw new BadRequestError("Invalid task id.");
 
@@ -136,6 +138,37 @@ export const getTaskDetails = async (
   if (!task) throw new NotFoundError("Task not found.");
 
   const taskView = toTaskView(task);
+
+  if (userId && isValidObjectId(userId)) {
+    const moduleDoc = await Module.findById(task.moduleId)
+      .select("projectId")
+      .lean();
+
+    if (moduleDoc) {
+      const projectId = toIdString(moduleDoc.projectId);
+      const taskFileIds = taskView.fileId.map((file) => file._id);
+
+      if (taskFileIds.length > 0) {
+        const savedUserFiles = await UserFile.find({
+          userId,
+          projectId,
+          fileId: { $in: taskFileIds },
+        }).lean();
+
+        const savedContentByFileId = new Map(
+          savedUserFiles.map((userFile) => [
+            toIdString(userFile.fileId),
+            userFile.content,
+          ]),
+        );
+
+        taskView.fileId = taskView.fileId.map((file) => ({
+          ...file,
+          content: savedContentByFileId.get(file._id) ?? file.content,
+        }));
+      }
+    }
+  }
 
   const solutions = await TaskFile.find({ taskId: task._id })
     .sort({ createdAt: 1 })

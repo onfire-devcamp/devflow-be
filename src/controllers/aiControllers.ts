@@ -1,13 +1,17 @@
 import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import type { ParsedQs } from "qs";
-import { sendMessage } from "../services/aiChatService.js";
+import {
+  sendMessage,
+  getChatHistoryForFrontend,
+} from "../services/aiChatService.js";
 import { requestHintOrExplanation } from "../services/aiHintService.js";
 import {
   evaluateExplainToPass,
   submitTaskForEvaluation,
 } from "../services/aiEvaluationService.js";
 import { getAuthenticatedUserId } from "../utils/authUtils.ts";
+import { BadRequestError } from "../utils/customErrors.js";
 import { handleControllerError } from "../utils/responseUtils.js";
 
 interface ChatBody {
@@ -36,6 +40,31 @@ interface ExplainToPassBody {
   mcqAnswer: string;
   explanation: string;
 }
+
+export const getChatHistoryController = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(req);
+    const { projectId, taskId } = req.params;
+
+    if (
+      !projectId ||
+      !taskId ||
+      typeof projectId !== "string" ||
+      typeof taskId !== "string"
+    ) {
+      throw new BadRequestError("projectId and taskId are required.");
+    }
+
+    const history = await getChatHistoryForFrontend(userId, projectId, taskId);
+
+    res.status(200).json({ success: true, data: history });
+  } catch (error: unknown) {
+    handleControllerError(res, error);
+  }
+};
 
 export const chatController = async (
   req: Request<Record<string, string>, unknown, ChatBody, ParsedQs>,

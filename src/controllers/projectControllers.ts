@@ -6,15 +6,12 @@ import {
   getProjectTechStackGrouped,
   getTaskDetails,
 } from "../services/projectService.js";
+import { getAuthenticatedUserId } from "../utils/authUtils.ts";
 import { BadRequestError } from "../utils/customErrors.ts";
 import { handleControllerError } from "../utils/responseUtils.js";
 
 interface ProjectParams {
   projectId: string;
-}
-
-interface TaskParams {
-  taskId: string;
 }
 
 export const getProjectsController = async (
@@ -88,17 +85,18 @@ export const getProjectTechStackController = async (
 };
 
 export const getTaskDetailsController = async (
-  req: Request<TaskParams>,
+  req: Request,
   res: Response,
 ): Promise<void> => {
   try {
     const { taskId } = req.params;
 
-    if (!taskId) {
+    if (!taskId || typeof taskId !== "string") {
       throw new BadRequestError("taskId is required.");
     }
 
-    const taskDetails = await getTaskDetails(taskId);
+    const userId = getAuthenticatedUserId(req);
+    const taskDetails = await getTaskDetails(taskId, userId);
 
     res.status(200).json({ success: true, data: taskDetails });
   } catch (error: unknown) {
