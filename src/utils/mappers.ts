@@ -181,7 +181,7 @@ export const toFrontendChatMessage = (
   chat: AIChatView,
 ): FrontendChatMessageView => {
   const isPassAction =
-    chat.isPassAction ??
+    chat.isPassAction ||
     (chat.role === "mentor" &&
       EXPLAIN_TO_PASS_ACTION_MARKERS.some((marker) =>
         chat.message.includes(marker),
