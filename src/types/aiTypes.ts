@@ -31,6 +31,11 @@ export interface FrontendChatMessageView {
   isPassAction?: boolean;
 }
 
+export interface PaginatedChatHistoryResult {
+  messages: FrontendChatMessageView[];
+  nextCursor: string | null;
+}
+
 export type AIHintType = "hint" | "explain";
 
 export interface AIHintView {

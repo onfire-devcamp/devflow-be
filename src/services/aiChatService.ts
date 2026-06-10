@@ -15,6 +15,7 @@ import type {
   AIChatView,
   AppendChatMessageInput,
   FrontendChatMessageView,
+  PaginatedChatHistoryResult,
 } from "../types/aiTypes.js";
 import type { AIChatDocument } from "../models/aiChatModel.js";
 import { BadRequestError } from "../utils/customErrors.js";
@@ -119,10 +120,36 @@ export const getChatHistoryForFrontend = async (
   userId: string,
   projectId: string,
   taskId: string,
-): Promise<FrontendChatMessageView[]> => {
+  cursor?: string,
+  limit = 4,
+): Promise<PaginatedChatHistoryResult> => {
   await ensureWelcomeMessage(userId, projectId, taskId);
-  const chats = await getChatHistory(userId, projectId, taskId);
-  return chats.map((chat) => toFrontendChatMessage(chat));
+
+  if (![userId, projectId, taskId].every(isValidObjectId)) {
+    throw new BadRequestError("Invalid identifiers for chat history.");
+  }
+
+  if (cursor && !isValidObjectId(cursor)) {
+    throw new BadRequestError("Invalid cursor.");
+  }
+
+  const filter: Record<string, unknown> = { userId, projectId, taskId };
+  if (cursor) {
+    filter._id = { $lt: cursor };
+  }
+
+  const chats = (await AIChat.find(filter)
+    .sort({ _id: -1 })
+    .limit(limit)
+    .lean()) as unknown as AIChatDocument[];
+
+  const messages = chats
+    .map((chat) => toFrontendChatMessage(toAIChatView(chat)))
+    .reverse();
+
+  const nextCursor = chats.length === limit ? (messages[0]?.id ?? null) : null;
+
+  return { messages, nextCursor };
 };
 
 export const sendMessage = async (

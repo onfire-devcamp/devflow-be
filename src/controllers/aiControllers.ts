@@ -67,7 +67,22 @@ export const getChatHistoryController = async (
       throw new BadRequestError("projectId and taskId are required.");
     }
 
-    const history = await getChatHistoryForFrontend(userId, projectId, taskId);
+    const cursor =
+      typeof req.query.cursor === "string" ? req.query.cursor : undefined;
+    const parsedLimit =
+      typeof req.query.limit === "string"
+        ? Number.parseInt(req.query.limit, 10)
+        : 4;
+    const limit =
+      Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 4;
+
+    const history = await getChatHistoryForFrontend(
+      userId,
+      projectId,
+      taskId,
+      cursor,
+      limit,
+    );
 
     res.status(200).json({ success: true, data: history });
   } catch (error: unknown) {
