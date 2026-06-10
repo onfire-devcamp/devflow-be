@@ -47,17 +47,18 @@ export const getProjectDetailsController = async (
 };
 
 export const getProjectRoadmapController = async (
-  req: Request<ProjectParams>,
+  req: Request,
   res: Response,
 ): Promise<void> => {
   try {
     const { projectId } = req.params;
 
-    if (!projectId) {
+    if (!projectId || typeof projectId !== "string") {
       throw new BadRequestError("projectId is required.");
     }
 
-    const roadmap = await getProjectRoadmap(projectId);
+    const userId = getAuthenticatedUserId(req);
+    const roadmap = await getProjectRoadmap(projectId, userId);
 
     res.status(200).json({ success: true, data: roadmap });
   } catch (error: unknown) {

@@ -23,6 +23,8 @@ export interface TaskFileSolutionView {
   updatedAt: Date;
 }
 
+export type TaskRoadmapStatus = "completed" | "current" | "locked";
+
 export interface TaskView {
   _id: string;
   moduleId: string;
@@ -42,6 +44,7 @@ export interface TaskView {
   };
   skillCategory: SkillCategory;
   skillPoints: number;
+  status?: TaskRoadmapStatus;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -64,6 +67,7 @@ export interface ProjectSummaryView {
   level: ProjectLevel;
   previewUrl?: string;
   systemFlowUrl?: string;
+  progressPercentage?: number;
   createdAt: Date;
   updatedAt: Date;
 }
