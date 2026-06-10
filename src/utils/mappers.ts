@@ -167,6 +167,7 @@ export const toAIChatView = (chat: AIChatDocument): AIChatView => ({
   taskId: toIdString(chat.taskId),
   message: chat.message,
   role: chat.role as AIChatView["role"],
+  isPassAction: chat.isPassAction ?? false,
   createdAt: chat.createdAt,
   updatedAt: chat.updatedAt,
 });
@@ -180,10 +181,11 @@ export const toFrontendChatMessage = (
   chat: AIChatView,
 ): FrontendChatMessageView => {
   const isPassAction =
-    chat.role === "mentor" &&
-    EXPLAIN_TO_PASS_ACTION_MARKERS.some((marker) =>
-      chat.message.includes(marker),
-    );
+    chat.isPassAction ??
+    (chat.role === "mentor" &&
+      EXPLAIN_TO_PASS_ACTION_MARKERS.some((marker) =>
+        chat.message.includes(marker),
+      ));
 
   return {
     id: chat._id,

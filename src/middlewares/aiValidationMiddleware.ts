@@ -28,3 +28,11 @@ export const explainToPassBodySchema = z.object({
   mcqAnswer: z.string().trim().min(1, "mcqAnswer is required"),
   explanation: z.string().trim().min(1, "explanation is required"),
 });
+
+export const appendChatMessageBodySchema = z.object({
+  projectId: objectIdSchema,
+  taskId: objectIdSchema,
+  sender: z.enum(["user", "ai"]),
+  text: z.string().trim().min(1, "text is required"),
+  isPassAction: z.boolean().optional(),
+});

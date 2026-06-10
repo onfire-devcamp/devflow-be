@@ -4,6 +4,7 @@ import type { ParsedQs } from "qs";
 import {
   sendMessage,
   getChatHistoryForFrontend,
+  appendChatMessageForFrontend,
 } from "../services/aiChatService.js";
 import { requestHintOrExplanation } from "../services/aiHintService.js";
 import {
@@ -41,6 +42,14 @@ interface ExplainToPassBody {
   explanation: string;
 }
 
+interface AppendChatMessageBody {
+  projectId: string;
+  taskId: string;
+  sender: "user" | "ai";
+  text: string;
+  isPassAction?: boolean;
+}
+
 export const getChatHistoryController = async (
   req: Request,
   res: Response,
@@ -61,6 +70,33 @@ export const getChatHistoryController = async (
     const history = await getChatHistoryForFrontend(userId, projectId, taskId);
 
     res.status(200).json({ success: true, data: history });
+  } catch (error: unknown) {
+    handleControllerError(res, error);
+  }
+};
+
+export const appendChatMessageController = async (
+  req: Request<
+    Record<string, string>,
+    unknown,
+    AppendChatMessageBody,
+    ParsedQs
+  >,
+  res: Response,
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(req);
+    const { projectId, taskId, sender, text, isPassAction } = req.body;
+
+    const savedMessage = await appendChatMessageForFrontend(userId, {
+      projectId,
+      taskId,
+      sender,
+      text,
+      isPassAction,
+    });
+
+    res.status(201).json({ success: true, data: savedMessage });
   } catch (error: unknown) {
     handleControllerError(res, error);
   }

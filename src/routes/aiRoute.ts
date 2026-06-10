@@ -3,6 +3,7 @@ import {
   chatController,
   explainToPassController,
   getChatHistoryController,
+  appendChatMessageController,
   hintController,
   evaluationController,
 } from "../controllers/aiControllers.ts";
@@ -10,6 +11,7 @@ import { protect } from "../middlewares/authMiddleware.js";
 import { aiRateLimiter } from "../middlewares/aiRateLimiter.js";
 import {
   chatBodySchema,
+  appendChatMessageBodySchema,
   evaluationBodySchema,
   explainToPassBodySchema,
   hintBodySchema,
@@ -22,6 +24,11 @@ router.use(protect);
 router.use(aiRateLimiter);
 
 router.get("/chat/:projectId/:taskId", getChatHistoryController);
+router.post(
+  "/chat/message",
+  validateBody(appendChatMessageBodySchema),
+  appendChatMessageController,
+);
 router.post("/chat", validateBody(chatBodySchema), chatController);
 router.post("/hint", validateBody(hintBodySchema), hintController);
 router.post(

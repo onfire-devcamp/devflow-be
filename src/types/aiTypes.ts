@@ -9,8 +9,17 @@ export interface AIChatView {
   taskId: string;
   message: string;
   role: AIChatRole;
+  isPassAction?: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface AppendChatMessageInput {
+  projectId: string;
+  taskId: string;
+  sender: FrontendChatSender;
+  text: string;
+  isPassAction?: boolean;
 }
 
 export type FrontendChatSender = "user" | "ai";

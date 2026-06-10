@@ -13,9 +13,17 @@ import {
   EVAL_TYPE,
 } from "../constants/evaluationConstant.js";
 import { toAIEvaluationView, toIdString } from "../utils/mappers.js";
+import { appendChatMessages } from "./aiChatService.js";
 import { getUserWorkspace, completeTask } from "./workspaceService.js";
 import { getTaskDetails } from "./projectService.js";
 import { BadRequestError, NotFoundError } from "../utils/customErrors.js";
+import {
+  CODE_REVIEW_USER_MESSAGE,
+  EXPLAIN_TO_PASS_USER_MESSAGE,
+  buildCodeReviewMentorMessage,
+  buildExplainToPassFailMessage,
+  buildExplainToPassPassMessage,
+} from "../constants/chatMessages.js";
 import type { AIEvaluationView } from "../types/aiTypes.js";
 import type { AIEvaluationDocument } from "../models/aiEvaluationModel.js";
 import mongoose, { isValidObjectId } from "mongoose";
@@ -85,6 +93,20 @@ export const submitTaskForEvaluation = async (
       ? EVAL_STATUS.PASS
       : EVAL_STATUS.FAIL;
   const feedback = String(result.feedback ?? "No feedback provided.");
+  const mentorMessage = buildCodeReviewMentorMessage(
+    score,
+    passStatus,
+    feedback,
+  );
+
+  await appendChatMessages(userId, projectId, taskId, [
+    { role: "user", message: CODE_REVIEW_USER_MESSAGE },
+    {
+      role: "mentor",
+      message: mentorMessage.message,
+      isPassAction: mentorMessage.isPassAction,
+    },
+  ]);
 
   if (passStatus === EVAL_STATUS.PASS) {
     const session = await mongoose.startSession();
@@ -222,6 +244,26 @@ export const evaluateExplainToPass = async (
       ? "MCQ answered correctly."
       : "MCQ answered incorrectly.";
   const feedback = `${mcqFeedback} ${result.feedback}`;
+
+  if (passStatus === EVAL_STATUS.PASS) {
+    await appendChatMessages(userId, projectId, taskId, [
+      { role: "user", message: EXPLAIN_TO_PASS_USER_MESSAGE },
+      {
+        role: "mentor",
+        message: buildExplainToPassPassMessage(totalScore, feedback),
+      },
+    ]);
+  } else {
+    const failMessage = buildExplainToPassFailMessage(totalScore, feedback);
+    await appendChatMessages(userId, projectId, taskId, [
+      { role: "user", message: EXPLAIN_TO_PASS_USER_MESSAGE },
+      {
+        role: "mentor",
+        message: failMessage.message,
+        isPassAction: failMessage.isPassAction,
+      },
+    ]);
+  }
 
   if (passStatus === EVAL_STATUS.PASS) {
     const session = await mongoose.startSession();

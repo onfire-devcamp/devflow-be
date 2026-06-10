@@ -165,6 +165,7 @@ export const getTaskDetails = async (
         taskView.fileId = taskView.fileId.map((file) => ({
           ...file,
           content: savedContentByFileId.get(file._id) ?? file.content,
+          skeleton: file.content,
         }));
       }
     }
