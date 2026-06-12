@@ -13,7 +13,11 @@ import {
 } from "../services/aiEvaluationService.js";
 import { getAuthenticatedUserId } from "../utils/authUtils.ts";
 import { BadRequestError } from "../utils/customErrors.js";
-import { handleControllerError } from "../utils/responseUtils.js";
+import {
+  SuccessResponse,
+  handleControllerError,
+} from "../utils/responseUtils.js";
+import { getChatHistorySchema } from "../middlewares/aiValidationMiddleware.js";
 
 interface ChatBody {
   projectId: string;
@@ -56,10 +60,10 @@ export const getChatHistoryController = async (
 ): Promise<void> => {
   try {
     const userId = getAuthenticatedUserId(req);
-    const projectId = req.params.projectId as string;
-    const taskId = req.params.taskId as string;
-    const cursor = req.query.cursor as string | undefined;
-    const limit = (req.query.limit as unknown as number) ?? 4;
+    const { projectId, taskId, cursor, limit } = getChatHistorySchema.parse({
+      ...req.params,
+      ...req.query,
+    });
 
     const history = await getChatHistoryForFrontend(
       userId,
@@ -69,7 +73,7 @@ export const getChatHistoryController = async (
       limit,
     );
 
-    res.status(200).json({ success: true, data: history });
+    new SuccessResponse(res, history);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
@@ -96,7 +100,7 @@ export const appendChatMessageController = async (
       isPassAction,
     });
 
-    res.status(201).json({ success: true, data: savedMessage });
+    new SuccessResponse(res, savedMessage, 201);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
@@ -112,7 +116,7 @@ export const chatController = async (
 
     const result = await sendMessage(userId, projectId, taskId, message);
 
-    res.status(200).json({ success: true, data: result });
+    new SuccessResponse(res, result);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
@@ -137,7 +141,7 @@ export const hintController = async (
       userQuestion,
     );
 
-    res.status(200).json({ success: true, data: result });
+    new SuccessResponse(res, result);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
@@ -153,7 +157,7 @@ export const evaluationController = async (
 
     const result = await submitTaskForEvaluation(userId, projectId, taskId);
 
-    res.status(200).json({ success: true, data: result });
+    new SuccessResponse(res, result);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
@@ -175,7 +179,7 @@ export const explainToPassController = async (
       explanation,
     );
 
-    res.status(200).json({ success: true, data: result });
+    new SuccessResponse(res, result);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
