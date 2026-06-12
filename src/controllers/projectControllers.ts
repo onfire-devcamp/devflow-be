@@ -8,7 +8,10 @@ import {
 } from "../services/projectService.js";
 import { getAuthenticatedUserId } from "../utils/authUtils.ts";
 import { BadRequestError } from "../utils/customErrors.ts";
-import { handleControllerError } from "../utils/responseUtils.js";
+import {
+  handleControllerError,
+  SuccessResponse,
+} from "../utils/responseUtils.js";
 
 interface ProjectParams {
   projectId: string;
@@ -21,7 +24,7 @@ export const getProjectsController = async (
   try {
     const projects = await getAllProjects();
 
-    res.status(200).json({ success: true, data: projects });
+    new SuccessResponse(res, projects);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
@@ -40,7 +43,7 @@ export const getProjectDetailsController = async (
 
     const project = await getProjectDetails(projectId);
 
-    res.status(200).json({ success: true, data: project });
+    new SuccessResponse(res, project);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
@@ -60,7 +63,7 @@ export const getProjectRoadmapController = async (
     const userId = getAuthenticatedUserId(req);
     const roadmap = await getProjectRoadmap(projectId, userId);
 
-    res.status(200).json({ success: true, data: roadmap });
+    new SuccessResponse(res, roadmap);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
@@ -79,7 +82,7 @@ export const getProjectTechStackController = async (
 
     const techStack = await getProjectTechStackGrouped(projectId);
 
-    res.status(200).json({ success: true, data: techStack });
+    new SuccessResponse(res, techStack);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
@@ -99,7 +102,7 @@ export const getTaskDetailsController = async (
     const userId = getAuthenticatedUserId(req);
     const taskDetails = await getTaskDetails(taskId, userId);
 
-    res.status(200).json({ success: true, data: taskDetails });
+    new SuccessResponse(res, taskDetails);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
