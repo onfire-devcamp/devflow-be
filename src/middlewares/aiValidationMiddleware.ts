@@ -36,3 +36,10 @@ export const appendChatMessageBodySchema = z.object({
   text: z.string().trim().min(1, "text is required"),
   isPassAction: z.boolean().optional(),
 });
+
+export const getChatHistorySchema = z.object({
+  projectId: objectIdSchema,
+  taskId: objectIdSchema,
+  cursor: z.string().optional(),
+  limit: z.coerce.number().int().min(1).default(4),
+});

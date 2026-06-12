@@ -22,3 +22,23 @@ export const validateBody = <T>(schema: ZodSchema<T>) => {
     next();
   };
 };
+
+export const validateParamsAndQuery = <T>(schema: ZodSchema<T>) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const result = schema.safeParse({ ...req.params, ...req.query });
+
+    if (!result.success) {
+      res.status(400).json({
+        success: false,
+        message: `Invalid request parameters: ${formatZodError(result.error.issues)}`,
+      });
+      return;
+    }
+
+    Object.assign(req, {
+      params: { ...req.params, ...result.data },
+      query: { ...req.query, ...result.data },
+    });
+    next();
+  };
+};

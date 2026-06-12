@@ -15,15 +15,23 @@ import {
   evaluationBodySchema,
   explainToPassBodySchema,
   hintBodySchema,
+  getChatHistorySchema,
 } from "../middlewares/aiValidationMiddleware.js";
-import { validateBody } from "../middlewares/validationMiddleware.js";
+import {
+  validateBody,
+  validateParamsAndQuery,
+} from "../middlewares/validationMiddleware.js";
 
 const router = express.Router();
 
 router.use(protect);
 router.use(aiRateLimiter);
 
-router.get("/chat/:projectId/:taskId", getChatHistoryController);
+router.get(
+  "/chat/:projectId/:taskId",
+  validateParamsAndQuery(getChatHistorySchema),
+  getChatHistoryController,
+);
 router.post(
   "/chat/message",
   validateBody(appendChatMessageBodySchema),

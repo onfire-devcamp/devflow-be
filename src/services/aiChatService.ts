@@ -66,14 +66,14 @@ export const appendChatMessageForFrontend = async (
     throw new BadRequestError("Message text is required.");
   }
 
-  const savedMessage = (await AIChat.create({
+  const savedMessage = await AIChat.create({
     userId,
     projectId,
     taskId,
     message: text.trim(),
     role: sender === "user" ? "user" : "mentor",
     isPassAction,
-  })) as unknown as AIChatDocument;
+  });
 
   return toFrontendChatMessage(toAIChatView(savedMessage));
 };
@@ -109,9 +109,9 @@ export const getChatHistory = async (
     throw new BadRequestError("Invalid identifiers for chat history.");
   }
 
-  const chats = (await AIChat.find({ userId, projectId, taskId })
+  const chats = await AIChat.find<AIChatDocument>({ userId, projectId, taskId })
     .sort({ createdAt: 1 })
-    .lean()) as unknown as AIChatDocument[];
+    .lean();
 
   return chats.map((c) => toAIChatView(c));
 };
@@ -138,10 +138,10 @@ export const getChatHistoryForFrontend = async (
     filter._id = { $lt: cursor };
   }
 
-  const chats = (await AIChat.find(filter)
+  const chats = await AIChat.find<AIChatDocument>(filter)
     .sort({ _id: -1 })
     .limit(limit)
-    .lean()) as unknown as AIChatDocument[];
+    .lean();
 
   const messages = chats
     .map((chat) => toFrontendChatMessage(toAIChatView(chat)))
@@ -165,9 +165,13 @@ export const sendMessage = async (
   if (!message || message.trim().length === 0)
     throw new BadRequestError("Message is empty.");
 
-  const historyDocs = (await AIChat.find({ userId, projectId, taskId })
+  const historyDocs = await AIChat.find<AIChatDocument>({
+    userId,
+    projectId,
+    taskId,
+  })
     .sort({ createdAt: 1 })
-    .lean()) as unknown as AIChatDocument[];
+    .lean();
 
   const history = historyDocs.map((h) => ({
     role: h.role,
@@ -188,13 +192,13 @@ export const sendMessage = async (
     systemInstruction,
   );
 
-  const mentorMsg = (await AIChat.create({
+  const mentorMsg = await AIChat.create({
     userId,
     projectId,
     taskId,
     message: replyText,
     role: "mentor",
-  })) as unknown as AIChatDocument;
+  });
 
   return toAIChatView(mentorMsg);
 };

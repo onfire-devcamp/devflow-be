@@ -56,25 +56,10 @@ export const getChatHistoryController = async (
 ): Promise<void> => {
   try {
     const userId = getAuthenticatedUserId(req);
-    const { projectId, taskId } = req.params;
-
-    if (
-      !projectId ||
-      !taskId ||
-      typeof projectId !== "string" ||
-      typeof taskId !== "string"
-    ) {
-      throw new BadRequestError("projectId and taskId are required.");
-    }
-
-    const cursor =
-      typeof req.query.cursor === "string" ? req.query.cursor : undefined;
-    const parsedLimit =
-      typeof req.query.limit === "string"
-        ? Number.parseInt(req.query.limit, 10)
-        : 4;
-    const limit =
-      Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 4;
+    const projectId = req.params.projectId as string;
+    const taskId = req.params.taskId as string;
+    const cursor = req.query.cursor as string | undefined;
+    const limit = (req.query.limit as unknown as number) ?? 4;
 
     const history = await getChatHistoryForFrontend(
       userId,

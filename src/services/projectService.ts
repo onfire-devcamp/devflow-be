@@ -24,8 +24,8 @@ import type {
   ProjectSummaryView,
   TaskDetailsView,
   TaskView,
-  TaskRoadmapStatus,
 } from "../types/projectTypes.js";
+import { TaskRoadmapStatus } from "../types/projectTypes.js";
 
 const toModuleWithTasksView = (
   module: any,
@@ -86,9 +86,9 @@ const resolveTaskRoadmapStatus = (
   completedTaskIds: Set<string>,
   isModuleUnlocked: boolean,
 ): TaskRoadmapStatus => {
-  if (completedTaskIds.has(taskId)) return "completed";
-  if (isModuleUnlocked) return "current";
-  return "locked";
+  if (completedTaskIds.has(taskId)) return TaskRoadmapStatus.COMPLETED;
+  if (isModuleUnlocked) return TaskRoadmapStatus.CURRENT;
+  return TaskRoadmapStatus.LOCKED;
 };
 
 const buildCompletedTaskIdSet = async (
@@ -176,7 +176,7 @@ export const getProjectRoadmap = async (
 
     const isModuleFullyCompleted =
       moduleTasks.length === 0 ||
-      moduleTasks.every((task) => task.status === "completed");
+      moduleTasks.every((task) => task.status === TaskRoadmapStatus.COMPLETED);
 
     nextModuleUnlocked = nextModuleUnlocked && isModuleFullyCompleted;
 

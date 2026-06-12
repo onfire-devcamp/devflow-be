@@ -23,7 +23,14 @@ export interface TaskFileSolutionView {
   updatedAt: Date;
 }
 
-export type TaskRoadmapStatus = "completed" | "current" | "locked";
+export const TaskRoadmapStatus = {
+  COMPLETED: "completed",
+  CURRENT: "current",
+  LOCKED: "locked",
+} as const;
+
+export type TaskRoadmapStatus =
+  (typeof TaskRoadmapStatus)[keyof typeof TaskRoadmapStatus];
 
 export interface TaskView {
   _id: string;
