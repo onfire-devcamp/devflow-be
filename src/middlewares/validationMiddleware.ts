@@ -35,10 +35,8 @@ export const validateParamsAndQuery = <T>(schema: ZodSchema<T>) => {
       return;
     }
 
-    Object.assign(req, {
-      params: { ...req.params, ...result.data },
-      query: { ...req.query, ...result.data },
-    });
+    Object.assign(req.params, result.data);
+    Object.assign(req.query, result.data);
     next();
   };
 };
