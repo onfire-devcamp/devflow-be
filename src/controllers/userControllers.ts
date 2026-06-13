@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import User from "../models/userModel.js";
 import type { AccessTokenPayload } from "../utils/tokenUtils.js";
+import { getUserProgressService } from "../services/userServices.js";
+import { getUserStreakService } from "../services/userServices.js";
 import type {
   EmptyObject,
   RegisterPayload,
@@ -175,5 +177,35 @@ export const googleAuth = async (
       return;
     }
     serverError(res, "googleAuth", error);
+  }
+};
+//GET /user/progress
+export const getUserProgress = async (
+  req: Request<EmptyObject, unknown, EmptyObject, UserQuery>,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { userId } = req.user as AccessTokenPayload;
+    const progressData = await getUserProgressService(userId.toString());
+    res.status(200).json(progressData);
+  } catch (error) {
+    if (error instanceof BadRequestError) {
+      res.status(error.statusCode).json({ message: error.message });
+      return;
+    }
+    serverError(res, "getUserProgress", error);
+  }
+};
+// GET /user/streak
+export const getUserStreak = async (
+  req: Request<EmptyObject, unknown, EmptyObject, UserQuery>,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { userId } = req.user as AccessTokenPayload;
+    const streakData = await getUserStreakService(userId.toString());
+    res.status(200).json(streakData);
+  } catch (error) {
+    serverError(res, "getStreakData", error);
   }
 };
