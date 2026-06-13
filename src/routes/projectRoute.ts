@@ -14,6 +14,6 @@ router.get("/", getProjectsController);
 router.get("/tasks/:taskId", protect, getTaskDetailsController);
 router.get("/:projectId/roadmap", protect, getProjectRoadmapController);
 router.get("/:projectId/tech-stack", getProjectTechStackController);
-router.get("/:projectId", getProjectDetailsController);
+router.get("/:slug", getProjectDetailsController);
 
 export default router;

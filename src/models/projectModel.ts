@@ -16,6 +16,7 @@ export interface ProjectFeatureItem {
 
 export interface ProjectDocument extends Document {
   title: string;
+  slug: string;
   description?: string;
   level: ProjectLevel;
   previewUrl?: string;
@@ -72,6 +73,12 @@ const projectSchema = new Schema<ProjectDocument>(
     title: {
       type: String,
       required: true,
+      trim: true,
+    },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
       trim: true,
     },
     description: {
