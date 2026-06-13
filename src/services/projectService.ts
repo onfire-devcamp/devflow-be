@@ -49,6 +49,7 @@ export const getAllProjects = async (): Promise<ProjectSummaryView[]> => {
   return projects.map((project) => ({
     _id: toIdString(project._id),
     title: project.title,
+    slug: project.slug,
     description: project.description,
     level: project.level,
     previewUrl: project.previewUrl,
@@ -59,17 +60,17 @@ export const getAllProjects = async (): Promise<ProjectSummaryView[]> => {
 };
 
 export const getProjectDetails = async (
-  projectId: string,
+  slug: string,
 ): Promise<ProjectDetailsView> => {
-  if (!isValidObjectId(projectId))
-    throw new BadRequestError("Invalid project id.");
+  if (!slug) throw new BadRequestError("Invalid project slug.");
 
-  const project = await Project.findById(projectId).lean();
+  const project = await Project.findOne({ slug }).lean();
   if (!project) throw new NotFoundError("Project not found.");
 
   return {
     _id: toIdString(project._id),
     title: project.title,
+    slug: project.slug,
     description: project.description,
     level: project.level,
     previewUrl: project.previewUrl,

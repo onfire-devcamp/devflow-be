@@ -30,18 +30,23 @@ export const getProjectsController = async (
   }
 };
 
+interface ProjectDetailParams {
+  slug: string;
+}
+
 export const getProjectDetailsController = async (
-  req: Request<ProjectParams>,
+  req: Request<ProjectDetailParams>,
   res: Response,
 ): Promise<void> => {
   try {
-    const { projectId } = req.params;
+    const { slug } = req.params;
+    console.log("getProjectDetailsController HIT with slug:", slug);
 
-    if (!projectId) {
-      throw new BadRequestError("projectId is required.");
+    if (!slug) {
+      throw new BadRequestError("slug is required.");
     }
 
-    const project = await getProjectDetails(projectId);
+    const project = await getProjectDetails(slug);
 
     new SuccessResponse(res, project);
   } catch (error: unknown) {

@@ -47,6 +47,7 @@ const projectLevel: ProjectLevel = "Intermediate";
 
 const twitterCloneProject = {
   title: "Build a Full-Stack Twitter Clone",
+  slug: "twitter-clone",
   description:
     "Build a modern Twitter-inspired platform with reusable UI foundations, routing, auth state, feed rendering, and production deployment patterns.",
   level: projectLevel,

@@ -123,6 +123,7 @@ export const toProjectSummaryView = (
 ): ProjectSummaryView => ({
   _id: toIdString(project._id),
   title: project.title,
+  slug: project.slug,
   description: project.description,
   level: project.level,
   previewUrl: project.previewUrl,

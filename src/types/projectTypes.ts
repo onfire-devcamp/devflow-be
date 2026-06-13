@@ -70,6 +70,7 @@ export interface ModuleWithTasksView {
 export interface ProjectSummaryView {
   _id: string;
   title: string;
+  slug: string;
   description?: string;
   level: ProjectLevel;
   previewUrl?: string;
