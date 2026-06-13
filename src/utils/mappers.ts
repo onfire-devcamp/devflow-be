@@ -22,6 +22,7 @@ import type {
   AIChatView,
   AIHintView,
   AIEvaluationView,
+  FrontendChatMessageView,
 } from "../types/aiTypes.js";
 import { DataIntegrityError } from "./customErrors.ts";
 
@@ -166,9 +167,33 @@ export const toAIChatView = (chat: AIChatDocument): AIChatView => ({
   taskId: toIdString(chat.taskId),
   message: chat.message,
   role: chat.role as AIChatView["role"],
+  isPassAction: chat.isPassAction ?? false,
   createdAt: chat.createdAt,
   updatedAt: chat.updatedAt,
 });
+
+const EXPLAIN_TO_PASS_ACTION_MARKERS = [
+  "Explain-to-Pass quick check",
+  "Explain-to-Pass needs one more try",
+] as const;
+
+export const toFrontendChatMessage = (
+  chat: AIChatView,
+): FrontendChatMessageView => {
+  const isPassAction =
+    chat.isPassAction ||
+    (chat.role === "mentor" &&
+      EXPLAIN_TO_PASS_ACTION_MARKERS.some((marker) =>
+        chat.message.includes(marker),
+      ));
+
+  return {
+    id: chat._id,
+    sender: chat.role === "user" ? "user" : "ai",
+    text: chat.message,
+    ...(isPassAction ? { isPassAction: true } : {}),
+  };
+};
 
 export const toAIHintView = (hint: AIHintDocument): AIHintView => ({
   _id: toIdString(hint._id),

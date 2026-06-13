@@ -4,6 +4,10 @@ import Module from "../models/moduleModel.js";
 import Project, { type ProjectTechStackItem } from "../models/projectModel.js";
 import Task from "../models/taskModel.js";
 import TaskFile from "../models/taskFileModel.js";
+import UserFile from "../models/userFileModel.js";
+import UserProgress from "../models/userProgressModel.js";
+import AIEvaluation from "../models/aiEvaluationModel.js";
+import { EVAL_STATUS, EVAL_TYPE } from "../constants/evaluationConstant.js";
 import { BadRequestError, NotFoundError } from "../utils/customErrors.js";
 import {
   isValidObjectId,
@@ -21,6 +25,7 @@ import type {
   TaskDetailsView,
   TaskView,
 } from "../types/projectTypes.js";
+import { TaskRoadmapStatus } from "../types/projectTypes.js";
 
 const toModuleWithTasksView = (
   module: any,
@@ -76,8 +81,44 @@ export const getProjectDetails = async (
   };
 };
 
+const resolveTaskRoadmapStatus = (
+  taskId: string,
+  completedTaskIds: Set<string>,
+  isModuleUnlocked: boolean,
+): TaskRoadmapStatus => {
+  if (completedTaskIds.has(taskId)) return TaskRoadmapStatus.COMPLETED;
+  if (isModuleUnlocked) return TaskRoadmapStatus.CURRENT;
+  return TaskRoadmapStatus.LOCKED;
+};
+
+const buildCompletedTaskIdSet = async (
+  userId: string,
+  projectId: string,
+): Promise<Set<string>> => {
+  const completedTaskIds = new Set<string>();
+
+  const progress = await UserProgress.findOne({ userId, projectId }).lean();
+  for (const taskId of progress?.completedTaskIds ?? []) {
+    completedTaskIds.add(toIdString(taskId));
+  }
+
+  const passedEvaluationTaskIds = await AIEvaluation.distinct("taskId", {
+    userId,
+    projectId,
+    passStatus: EVAL_STATUS.PASS,
+    type: EVAL_TYPE.EXPLAIN_TO_PASS,
+  });
+
+  for (const taskId of passedEvaluationTaskIds) {
+    completedTaskIds.add(toIdString(taskId as mongoose.Types.ObjectId));
+  }
+
+  return completedTaskIds;
+};
+
 export const getProjectRoadmap = async (
   projectId: string,
+  userId?: string,
 ): Promise<ProjectRoadmapView> => {
   if (!isValidObjectId(projectId))
     throw new BadRequestError("Invalid project id.");
@@ -114,21 +155,53 @@ export const getProjectRoadmap = async (
     tasksByModuleId.get(moduleKey)!.push(taskView);
   }
 
-  const roadmapModules = modules.map((module) =>
-    toModuleWithTasksView(
-      module,
-      tasksByModuleId.get(toIdString(module._id)) ?? [],
-    ),
-  );
+  const completedTaskIds =
+    userId && isValidObjectId(userId)
+      ? await buildCompletedTaskIdSet(userId, projectId)
+      : new Set<string>();
+
+  let nextModuleUnlocked = true;
+  const roadmapModules: ModuleWithTasksView[] = [];
+
+  for (const module of modules) {
+    const moduleKey = toIdString(module._id);
+    const moduleTasks = (tasksByModuleId.get(moduleKey) ?? []).map((task) => ({
+      ...task,
+      status: resolveTaskRoadmapStatus(
+        task._id,
+        completedTaskIds,
+        nextModuleUnlocked,
+      ),
+    }));
+
+    const isModuleFullyCompleted =
+      moduleTasks.length === 0 ||
+      moduleTasks.every((task) => task.status === TaskRoadmapStatus.COMPLETED);
+
+    nextModuleUnlocked = nextModuleUnlocked && isModuleFullyCompleted;
+
+    roadmapModules.push(toModuleWithTasksView(module, moduleTasks));
+  }
+
+  const totalTasks = tasks.length;
+  const completedCount = tasks.filter((task) =>
+    completedTaskIds.has(toIdString(task._id)),
+  ).length;
+  const progressPercentage =
+    totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
 
   return {
-    project: toProjectSummaryView(project),
+    project: {
+      ...toProjectSummaryView(project),
+      progressPercentage,
+    },
     modules: roadmapModules,
   };
 };
 
 export const getTaskDetails = async (
   taskId: string,
+  userId?: string,
 ): Promise<TaskDetailsView> => {
   if (!isValidObjectId(taskId)) throw new BadRequestError("Invalid task id.");
 
@@ -136,6 +209,38 @@ export const getTaskDetails = async (
   if (!task) throw new NotFoundError("Task not found.");
 
   const taskView = toTaskView(task);
+
+  if (userId && isValidObjectId(userId)) {
+    const moduleDoc = await Module.findById(task.moduleId)
+      .select("projectId")
+      .lean();
+
+    if (moduleDoc) {
+      const projectId = toIdString(moduleDoc.projectId);
+      const taskFileIds = taskView.fileId.map((file) => file._id);
+
+      if (taskFileIds.length > 0) {
+        const savedUserFiles = await UserFile.find({
+          userId,
+          projectId,
+          fileId: { $in: taskFileIds },
+        }).lean();
+
+        const savedContentByFileId = new Map(
+          savedUserFiles.map((userFile) => [
+            toIdString(userFile.fileId),
+            userFile.content,
+          ]),
+        );
+
+        taskView.fileId = taskView.fileId.map((file) => ({
+          ...file,
+          content: savedContentByFileId.get(file._id) ?? file.content,
+          skeleton: file.content,
+        }));
+      }
+    }
+  }
 
   const solutions = await TaskFile.find({ taskId: task._id })
     .sort({ createdAt: 1 })

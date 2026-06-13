@@ -6,15 +6,15 @@ import {
   getProjectTechStackGrouped,
   getTaskDetails,
 } from "../services/projectService.js";
+import { getAuthenticatedUserId } from "../utils/authUtils.ts";
 import { BadRequestError } from "../utils/customErrors.ts";
-import { handleControllerError } from "../utils/responseUtils.js";
+import {
+  handleControllerError,
+  SuccessResponse,
+} from "../utils/responseUtils.js";
 
 interface ProjectParams {
   projectId: string;
-}
-
-interface TaskParams {
-  taskId: string;
 }
 
 export const getProjectsController = async (
@@ -24,7 +24,7 @@ export const getProjectsController = async (
   try {
     const projects = await getAllProjects();
 
-    res.status(200).json({ success: true, data: projects });
+    new SuccessResponse(res, projects);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
@@ -43,26 +43,27 @@ export const getProjectDetailsController = async (
 
     const project = await getProjectDetails(projectId);
 
-    res.status(200).json({ success: true, data: project });
+    new SuccessResponse(res, project);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
 };
 
 export const getProjectRoadmapController = async (
-  req: Request<ProjectParams>,
+  req: Request,
   res: Response,
 ): Promise<void> => {
   try {
     const { projectId } = req.params;
 
-    if (!projectId) {
+    if (!projectId || typeof projectId !== "string") {
       throw new BadRequestError("projectId is required.");
     }
 
-    const roadmap = await getProjectRoadmap(projectId);
+    const userId = getAuthenticatedUserId(req);
+    const roadmap = await getProjectRoadmap(projectId, userId);
 
-    res.status(200).json({ success: true, data: roadmap });
+    new SuccessResponse(res, roadmap);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
@@ -81,26 +82,27 @@ export const getProjectTechStackController = async (
 
     const techStack = await getProjectTechStackGrouped(projectId);
 
-    res.status(200).json({ success: true, data: techStack });
+    new SuccessResponse(res, techStack);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
 };
 
 export const getTaskDetailsController = async (
-  req: Request<TaskParams>,
+  req: Request,
   res: Response,
 ): Promise<void> => {
   try {
     const { taskId } = req.params;
 
-    if (!taskId) {
+    if (!taskId || typeof taskId !== "string") {
       throw new BadRequestError("taskId is required.");
     }
 
-    const taskDetails = await getTaskDetails(taskId);
+    const userId = getAuthenticatedUserId(req);
+    const taskDetails = await getTaskDetails(taskId, userId);
 
-    res.status(200).json({ success: true, data: taskDetails });
+    new SuccessResponse(res, taskDetails);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }

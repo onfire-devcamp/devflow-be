@@ -8,6 +8,7 @@ export interface AIChatDocument extends Document {
   taskId: mongoose.Types.ObjectId;
   message: string;
   role: AIChatRole;
+  isPassAction?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -38,6 +39,10 @@ const aiChatSchema = new Schema<AIChatDocument>(
       type: String,
       enum: ["user", "mentor"],
       required: true,
+    },
+    isPassAction: {
+      type: Boolean,
+      default: false,
     },
   },
   {

@@ -23,6 +23,15 @@ export interface TaskFileSolutionView {
   updatedAt: Date;
 }
 
+export const TaskRoadmapStatus = {
+  COMPLETED: "completed",
+  CURRENT: "current",
+  LOCKED: "locked",
+} as const;
+
+export type TaskRoadmapStatus =
+  (typeof TaskRoadmapStatus)[keyof typeof TaskRoadmapStatus];
+
 export interface TaskView {
   _id: string;
   moduleId: string;
@@ -42,6 +51,7 @@ export interface TaskView {
   };
   skillCategory: SkillCategory;
   skillPoints: number;
+  status?: TaskRoadmapStatus;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -64,6 +74,7 @@ export interface ProjectSummaryView {
   level: ProjectLevel;
   previewUrl?: string;
   systemFlowUrl?: string;
+  progressPercentage?: number;
   createdAt: Date;
   updatedAt: Date;
 }
