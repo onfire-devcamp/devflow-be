@@ -100,6 +100,7 @@ class GeminiClient {
     });
 
     const text = result.response.text();
+    console.log(text);
     if (!text) {
       throw new Error("Gemini returned an empty structured response.");
     }

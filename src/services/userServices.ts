@@ -1,6 +1,10 @@
 import bcrypt from "bcrypt";
 import User from "../models/userModel.js";
-import { LoginPayload, RegisterPayload } from "../types/userTypes.js";
+import {
+  LoginPayload,
+  RegisterPayload,
+  PopulatedProject,
+} from "../types/userTypes.js";
 import { env } from "../config/environment.js";
 import { AuthenticationError, BadRequestError } from "../utils/customErrors.js";
 import { generateTokenPair } from "./authService.js";
@@ -9,11 +13,11 @@ import UserProgress from "../models/userProgressModel.ts";
 import Module from "../models/moduleModel.ts";
 import Task from "../models/taskModel.ts";
 import {
-  WeekDayData,
   calculateCompletedDays,
   getWeekDaysData,
   generateStreakMessage,
 } from "../utils/streakUtils.ts";
+import { WeekDayData, UserProgressResponse } from "../types/userTypes.js";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const validateEmailFormat = (email: string): void => {
@@ -154,18 +158,10 @@ export const googleAuthService = async (
 
 export const getUserProgressService = async (
   userId: string,
-): Promise<{
-  id: string;
-  projectId: string;
-  slug: string;
-  title: string;
-  moduleName: string;
-  moduleHint: string;
-  progressPercent: number;
-}> => {
+): Promise<UserProgressResponse> => {
   const userProgress = await UserProgress.findOne({ userId })
     .sort({ updatedAt: -1 })
-    .populate({
+    .populate<{ projectId: PopulatedProject | null }>({
       path: "projectId",
       select: "title slug",
     })
@@ -179,8 +175,9 @@ export const getUserProgressService = async (
   if (!userProgress) {
     throw new BadRequestError("No progress found");
   }
-  const projectId = userProgress.projectId;
-  const modules = await Module.find({ projectId }).select("_id");
+  const project = userProgress.projectId;
+  const rawProjectId = project ? project._id : null;
+  const modules = await Module.find({ projectId: rawProjectId }).select("_id");
   const moduleIds = modules.map((m) => m._id);
 
   const allTasks = await Task.find({ moduleId: { $in: moduleIds } });
@@ -200,9 +197,9 @@ export const getUserProgressService = async (
     : null;
   return {
     id: userProgress._id.toString(),
-    projectId: (userProgress.projectId as any)?._id,
-    slug: (userProgress.projectId as any)?.slug,
-    title: (userProgress.projectId as any)?.title || "No project",
+    projectId: project?._id.toString() || "",
+    slug: project?.slug || "",
+    title: project?.title || "No project",
     moduleName: currentModuleData?.title || "N/A",
     moduleHint: currentModuleData?.description || "",
     progressPercent,

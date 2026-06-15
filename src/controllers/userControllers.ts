@@ -18,7 +18,7 @@ import {
 } from "../services/userServices.js";
 import { AuthenticationError, BadRequestError } from "../utils/customErrors.js";
 import { setRefreshTokenCookie } from "../utils/cookieUtils.js";
-
+import { SuccessResponse } from "../utils/responseUtils.ts";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const serverError = (res: Response, context: string, error: unknown): void => {
@@ -187,7 +187,7 @@ export const getUserProgress = async (
   try {
     const { userId } = req.user as AccessTokenPayload;
     const progressData = await getUserProgressService(userId.toString());
-    res.status(200).json(progressData);
+    new SuccessResponse(res, progressData);
   } catch (error) {
     if (error instanceof BadRequestError) {
       res.status(error.statusCode).json({ message: error.message });
@@ -204,7 +204,7 @@ export const getUserStreak = async (
   try {
     const { userId } = req.user as AccessTokenPayload;
     const streakData = await getUserStreakService(userId.toString());
-    res.status(200).json(streakData);
+    new SuccessResponse(res, streakData);
   } catch (error) {
     serverError(res, "getStreakData", error);
   }

@@ -5,11 +5,8 @@ import {
   STREAK_MESSAGES,
   STREAK_CONFIG,
 } from "../constants/streak.ts";
-
-export interface WeekDayData {
-  label: string;
-  completed: boolean;
-}
+import { WeekDayData, LeanActivity } from "../types/userTypes.ts";
+import { Types } from "mongoose";
 
 export const getWeekDaysData = async (
   userId: string,
@@ -21,6 +18,14 @@ export const getWeekDaysData = async (
   const monday = new Date(today);
   monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
   monday.setHours(STREAK_CONFIG.HOURS_START, 0, 0, 0);
+  const nextMonday = new Date(monday);
+  nextMonday.setDate(monday.getDate() + STREAK_CONFIG.DAYS_IN_WEEK);
+  const activities = await Activity.find({
+    userId,
+    createdAt: { $gte: monday, $lt: nextMonday },
+  })
+    .select("createdAt")
+    .lean<LeanActivity[]>();
 
   for (let i = 0; i < STREAK_CONFIG.DAYS_IN_WEEK; i++) {
     const date = new Date(monday);
@@ -29,14 +34,13 @@ export const getWeekDaysData = async (
     const nextDate = new Date(date);
     nextDate.setDate(date.getDate() + 1);
 
-    const activity = await Activity.findOne({
-      userId,
-      createdAt: { $gte: date, $lt: nextDate },
-    });
+    const isCompleted = activities.some(
+      (act) => act.createdAt >= date && act.createdAt < nextDate,
+    );
 
     weekDays.push({
       label: WEEK_LABELS[i],
-      completed: !!activity,
+      completed: isCompleted,
     });
   }
 
