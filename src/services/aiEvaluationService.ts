@@ -128,7 +128,6 @@ export const submitTaskForEvaluation = async (
           ],
           { session },
         );
-        await completeTask(userId, projectId, taskId, session);
         evalDoc = createdEvalDoc as unknown as AIEvaluationDocument;
       });
     } finally {
