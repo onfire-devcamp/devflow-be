@@ -1,11 +1,23 @@
 import bcrypt from "bcrypt";
 import User from "../models/userModel.js";
-import { LoginPayload, RegisterPayload } from "../types/userTypes.js";
+import {
+  LoginPayload,
+  RegisterPayload,
+  PopulatedProject,
+} from "../types/userTypes.js";
 import { env } from "../config/environment.js";
 import { AuthenticationError, BadRequestError } from "../utils/customErrors.js";
 import { generateTokenPair } from "./authService.js";
 import type { AuthResult } from "./authService.js";
-
+import UserProgress from "../models/userProgressModel.ts";
+import Module from "../models/moduleModel.ts";
+import Task from "../models/taskModel.ts";
+import {
+  calculateCompletedDays,
+  getWeekDaysData,
+  generateStreakMessage,
+} from "../utils/streakUtils.ts";
+import { WeekDayData, UserProgressResponse } from "../types/userTypes.js";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const validateEmailFormat = (email: string): void => {
@@ -141,5 +153,73 @@ export const googleAuthService = async (
     accessToken,
     refreshToken,
     user: { id: user._id, username: user.username, email: user.email },
+  };
+};
+
+export const getUserProgressService = async (
+  userId: string,
+): Promise<UserProgressResponse> => {
+  const userProgress = await UserProgress.findOne({ userId })
+    .sort({ updatedAt: -1 })
+    .populate<{ projectId: PopulatedProject | null }>({
+      path: "projectId",
+      select: "title slug",
+    })
+    .populate({
+      path: "lastActiveTaskId",
+      populate: {
+        path: "moduleId",
+        select: "title description",
+      },
+    });
+  if (!userProgress) {
+    throw new BadRequestError("No progress found");
+  }
+  const project = userProgress.projectId;
+  const rawProjectId = project ? project._id : null;
+  const modules = await Module.find({ projectId: rawProjectId }).select("_id");
+  const moduleIds = modules.map((m) => m._id);
+
+  const allTasks = await Task.find({ moduleId: { $in: moduleIds } });
+  const totalTasksOfProject = allTasks.length;
+
+  const completedTasks = userProgress.completedTaskIds.length;
+  const progressPercent =
+    totalTasksOfProject > 0
+      ? Math.round((completedTasks / totalTasksOfProject) * 100)
+      : 0;
+
+  const currentModuleId =
+    userProgress.unlockedModuleIds?.[userProgress.unlockedModuleIds.length - 1];
+
+  const currentModuleData = currentModuleId
+    ? await Module.findById(currentModuleId).select("title description")
+    : null;
+  return {
+    id: userProgress._id.toString(),
+    projectId: project?._id.toString() || "",
+    slug: project?.slug || "",
+    title: project?.title || "No project",
+    moduleName: currentModuleData?.title || "N/A",
+    moduleHint: currentModuleData?.description || "",
+    progressPercent,
+  };
+};
+export const getUserStreakService = async (
+  userId: string,
+): Promise<{
+  weekDays: WeekDayData[];
+  completedDays: number;
+  totalDays: 7;
+  message: string;
+}> => {
+  const weekDays = await getWeekDaysData(userId.toString());
+  const completedDays = calculateCompletedDays(weekDays);
+  const message = generateStreakMessage(completedDays);
+  return {
+    weekDays: weekDays,
+    completedDays: completedDays,
+    totalDays: 7,
+    message: message,
   };
 };

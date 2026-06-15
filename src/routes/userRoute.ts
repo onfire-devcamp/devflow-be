@@ -7,6 +7,8 @@ import {
   updateProfile,
   loginUser,
   googleAuth,
+  getUserProgress,
+  getUserStreak,
 } from "../controllers/userControllers.js";
 import { protect } from "../middlewares/authMiddleware.js";
 import { getUserSkills } from "../controllers/progressBarLogic.js";
@@ -29,5 +31,7 @@ router.get("/", protect, getUser);
 router.put("/profile", protect, updateProfile);
 router.delete("/profile", protect, deleteProfile);
 router.get("/skills", protect, getUserSkills);
+router.get("/progress", protect, getUserProgress);
+router.get("/streak", protect, getUserStreak);
 
 export default router;

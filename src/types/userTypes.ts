@@ -1,5 +1,4 @@
 import type { ParsedQs } from "qs";
-
 export interface UserSkillsPayload {
   frontend?: number;
   backend?: number;
@@ -40,4 +39,28 @@ export type EmptyObject = Record<string, never>;
 
 export interface GoogleAuthPayload {
   accessToken: string;
+}
+
+export interface WeekDayData {
+  label: string;
+  completed: boolean;
+}
+export interface LeanActivity {
+  _id: string;
+  createdAt: Date;
+}
+
+export interface UserProgressResponse {
+  id: string;
+  projectId: string;
+  slug: string;
+  title: string;
+  moduleName: string;
+  moduleHint: string;
+  progressPercent: number;
+}
+export interface PopulatedProject {
+  _id: string;
+  title: string;
+  slug: string;
 }
