@@ -14,11 +14,16 @@ import workspaceRoute from "./routes/workspaceRoute.js";
 
 const app = express();
 
+// Render (and most cloud hosts) terminate SSL at the reverse proxy.
+// Without this, Express sees req.protocol as "http" and refuses
+// to set cookies with { secure: true }.
+app.set("trust proxy", 1);
+
 app.use(helmet());
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: env.CORS_ORIGIN,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
