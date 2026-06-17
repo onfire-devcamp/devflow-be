@@ -1,9 +1,11 @@
 import type { Request, Response } from "express";
+import type { ParsedQs } from "qs";
 import {
   getAllProjects,
   getProjectDetails,
   getProjectRoadmap,
   getProjectTechStackGrouped,
+  getProjectCodebase,
   getTaskDetails,
 } from "../services/projectService.js";
 import { getAuthenticatedUserId } from "../utils/authUtils.ts";
@@ -108,6 +110,25 @@ export const getTaskDetailsController = async (
     const taskDetails = await getTaskDetails(taskId, userId);
 
     new SuccessResponse(res, taskDetails);
+  } catch (error: unknown) {
+    handleControllerError(res, error);
+  }
+};
+
+export const getProjectCodebaseController = async (
+  req: Request<{ slug: string }>,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { slug } = req.params;
+
+    if (!slug) {
+      throw new BadRequestError("slug is required.");
+    }
+
+    const codebase = await getProjectCodebase(slug);
+
+    new SuccessResponse(res, codebase);
   } catch (error: unknown) {
     handleControllerError(res, error);
   }
