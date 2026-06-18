@@ -10,6 +10,7 @@ export interface FileTemplateView {
   projectId: string;
   path: string;
   content: string;
+  readOnly: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

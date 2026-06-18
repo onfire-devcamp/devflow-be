@@ -4,6 +4,7 @@ export interface FileTemplateDocument extends Document {
   projectId: mongoose.Types.ObjectId;
   path: string;
   content: string;
+  readOnly: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,6 +24,10 @@ const fileTemplateSchema = new Schema<FileTemplateDocument>(
     content: {
       type: String,
       required: true,
+    },
+    readOnly: {
+      type: Boolean,
+      default: false,
     },
   },
   {

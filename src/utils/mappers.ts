@@ -54,6 +54,7 @@ export const toFileTemplateView = (
   projectId: toIdString(fileTemplate.projectId),
   path: fileTemplate.path,
   content: fileTemplate.content,
+  readOnly: fileTemplate.readOnly ?? false,
   createdAt: fileTemplate.createdAt,
   updatedAt: fileTemplate.updatedAt,
 });
