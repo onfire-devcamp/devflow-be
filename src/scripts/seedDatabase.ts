@@ -16,8 +16,12 @@ import type { SeedProject, SeedTask } from "./seedTypes.js";
 // ---------------------------------------------------------------------------
 
 import twitterCloneProject from "./seedTwitterClone.js";
+import singlePageCvProject from "./seedSinglePageCV.js";
 
-const ALL_PROJECTS: readonly SeedProject[] = [twitterCloneProject];
+const ALL_PROJECTS: readonly SeedProject[] = [
+  twitterCloneProject,
+  singlePageCvProject,
+];
 
 // ---------------------------------------------------------------------------
 // Chaining Validation
