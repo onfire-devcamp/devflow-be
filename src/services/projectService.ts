@@ -285,3 +285,18 @@ export const getProjectTechStackGrouped = async (
 
   return grouped;
 };
+
+export const getProjectCodebase = async (
+  slug: string,
+): Promise<import("../types/projectTypes.js").FileTemplateView[]> => {
+  if (!slug) throw new BadRequestError("Invalid project slug.");
+
+  const project = await Project.findOne({ slug }).lean();
+  if (!project) throw new NotFoundError("Project not found.");
+
+  const fileTemplates = await FileTemplate.find({ projectId: project._id })
+    .sort({ path: 1 })
+    .lean();
+
+  return fileTemplates.map(toFileTemplateView);
+};
