@@ -18,11 +18,13 @@ import type { SeedProject, SeedTask } from "./seedTypes.js";
 import twitterCloneProject from "./seedTwitterClone.js";
 import singlePageCvProject from "./seedSinglePageCV.js";
 import kahootProject from "./seedKahoot.js";
+import urlShortenerProject from "./seedUrlShortener.js";
 
 const ALL_PROJECTS: readonly SeedProject[] = [
   twitterCloneProject,
   singlePageCvProject,
   kahootProject,
+  urlShortenerProject,
 ];
 
 // ---------------------------------------------------------------------------
@@ -154,6 +156,7 @@ const seedProject = async (project: SeedProject): Promise<void> => {
     slug: project.slug,
     description: project.description,
     level: project.level,
+    category: project.category,
     previewUrl: project.previewUrl,
     systemFlowUrl: project.systemFlowUrl,
     techStack: project.techStack,

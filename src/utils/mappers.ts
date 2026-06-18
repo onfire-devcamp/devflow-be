@@ -127,6 +127,7 @@ export const toProjectSummaryView = (
   slug: project.slug,
   description: project.description,
   level: project.level,
+  category: project.category,
   previewUrl: project.previewUrl,
   systemFlowUrl: project.systemFlowUrl,
   createdAt: project.createdAt,

@@ -72,8 +72,9 @@ export interface ProjectSummaryView {
   _id: string;
   title: string;
   slug: string;
-  description?: string;
-  level: ProjectLevel;
+  description: string;
+  level: string;
+  category: string;
   previewUrl?: string;
   systemFlowUrl?: string;
   progressPercentage?: number;

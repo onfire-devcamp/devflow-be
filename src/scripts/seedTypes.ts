@@ -49,15 +49,16 @@ export type SeedFeatureItem = {
   description: string;
 };
 
-export type SeedProject = {
+export interface SeedProject {
   title: string;
   slug: string;
   description: string;
-  level: ProjectLevel;
+  level: "Beginner" | "Intermediate" | "Advanced";
+  category: "Frontend" | "Backend" | "Fullstack";
   previewUrl: string;
-  systemFlowUrl: string;
+  systemFlowUrl?: string;
   techStack: SeedTechStackItem[];
   features: SeedFeatureItem[];
   foundationalFiles: SeedFoundationalFile[];
   modules: SeedModule[];
-};
+}

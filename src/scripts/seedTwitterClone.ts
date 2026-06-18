@@ -831,6 +831,7 @@ const twitterCloneProject: SeedProject = {
   description:
     "Build a modern Twitter-inspired platform with reusable UI foundations, routing, auth state, feed rendering, and interactive social engagement patterns.",
   level: "Intermediate",
+  category: "Fullstack",
   previewUrl: "https://example.com/twitter-clone-preview",
   systemFlowUrl: "https://example.com/twitter-clone-system-flow",
   techStack: [

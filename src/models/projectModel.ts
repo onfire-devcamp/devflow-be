@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export type ProjectLevel = "Beginner" | "Intermediate" | "Advanced";
+export type ProjectCategory = "Frontend" | "Backend" | "Fullstack";
 export type TechStackCategory = "Frontend" | "Backend" | "Database" | "DevOps";
 
 export interface ProjectTechStackItem {
@@ -17,8 +18,9 @@ export interface ProjectFeatureItem {
 export interface ProjectDocument extends Document {
   title: string;
   slug: string;
-  description?: string;
+  description: string;
   level: ProjectLevel;
+  category: ProjectCategory;
   previewUrl?: string;
   systemFlowUrl?: string;
   techStack: ProjectTechStackItem[];
@@ -83,11 +85,17 @@ const projectSchema = new Schema<ProjectDocument>(
     },
     description: {
       type: String,
+      required: true,
       trim: true,
     },
     level: {
       type: String,
       enum: ["Beginner", "Intermediate", "Advanced"],
+      required: true,
+    },
+    category: {
+      type: String,
+      enum: ["Frontend", "Backend", "Fullstack"],
       required: true,
     },
     previewUrl: {

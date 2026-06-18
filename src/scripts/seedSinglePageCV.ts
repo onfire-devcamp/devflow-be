@@ -471,6 +471,7 @@ const singlePageCvProject: SeedProject = {
   description:
     "Master React fundamentals and Tailwind CSS by building a clean, responsive, and data-driven single-page resume.",
   level: "Beginner",
+  category: "Frontend",
   previewUrl: "https://example.com/cv-preview",
   systemFlowUrl: "https://example.com/cv-system-flow",
   techStack: [

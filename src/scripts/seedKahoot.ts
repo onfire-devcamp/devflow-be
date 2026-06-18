@@ -482,6 +482,7 @@ const kahootProject: SeedProject = {
   description:
     "Master global state, custom hooks, and React component lifecycles by building a fast-paced trivia game with a countdown timer.",
   level: "Intermediate",
+  category: "Frontend",
   previewUrl: "https://example.com/kahoot-preview",
   systemFlowUrl: "https://example.com/kahoot-system-flow",
   techStack: [
