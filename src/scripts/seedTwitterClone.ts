@@ -1,7 +1,7 @@
 import type { SeedProject } from "./seedTypes.js";
 
 // ---------------------------------------------------------------------------
-// Foundational Files — read-only, available from the start, not tied to tasks
+// Foundational Files — read-only, always visible, not tied to any task
 // ---------------------------------------------------------------------------
 
 const foundationalFiles: SeedProject["foundationalFiles"] = [
@@ -118,28 +118,35 @@ createRoot(document.getElementById("root")!).render(
   },
 ];
 
-// ---------------------------------------------------------------------------
-// Module 1 — Routing & Layout
-// ---------------------------------------------------------------------------
+// ═══════════════════════════════════════════════════════════════════════════
+// Module 1 — Base Routing
+// ═══════════════════════════════════════════════════════════════════════════
 
 const m1t1AppSkeleton = `import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-// TODO: Create three placeholder page components:
-// 1. LoginPage — returns a <div> with the text "Login page"
-// 2. FeedPage — returns a <div> with the text "Feed page"
-// 3. ProfilePage — returns a <div> with the text "Profile page"
+function LoginPage() {
+  return <div>Login page</div>;
+}
+
+function FeedPage() {
+  return <div>Feed page</div>;
+}
+
+function ProfilePage() {
+  return <div>Profile page</div>;
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* TODO: Add the following routes:
-            1. "/" → redirect to "/feed" using <Navigate to="/feed" replace />
-            2. "/login" → render <LoginPage />
-            3. "/feed" → render <FeedPage />
-            4. "/profile/:username" → render <ProfilePage />
-            5. "*" (catch-all) → redirect to "/feed"
-        */}
+        {/*  The Feed route is already set up for you. */}
+        <Route path="/feed" element={<FeedPage />} />
+
+        {/* TODO: Add the "/login" route rendering <LoginPage /> */}
+        {/* TODO: Add the "/profile/:username" route rendering <ProfilePage /> */}
+
+        <Route path="*" element={<Navigate to="/feed" replace />} />
       </Routes>
     </BrowserRouter>
   );
@@ -163,9 +170,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/feed" replace />} />
-        <Route path="/login" element={<LoginPage />} />
         <Route path="/feed" element={<FeedPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/feed" replace />} />
       </Routes>
@@ -173,35 +179,53 @@ export default function App() {
   );
 }`;
 
-const m1t2LayoutSkeleton = `import { Outlet, NavLink } from "react-router-dom";
+// ═══════════════════════════════════════════════════════════════════════════
+// Module 2 — Layout & Navigation
+// ═══════════════════════════════════════════════════════════════════════════
 
-// TODO: Build the main application shell layout.
-// 1. Create a 'navItems' array with objects { to: string, label: string } for:
-//    - { to: "/feed", label: "Home" }
-//    - { to: "/profile/me", label: "Profile" }
-// 2. Inside the <nav>, render:
-//    a. An <h1> with text "Twitter Clone" styled as the app title.
-//    b. Map over 'navItems' and render a <NavLink> for each item.
-//       Use NavLink's className callback: ({ isActive }) => ...
-//       to apply "bg-brand-50 text-brand-600" when active,
-//       and "text-slate-600 hover:bg-slate-50" when inactive.
-// 3. Inside <main>, render <Outlet /> to display the matched child route.
+const m2t1LayoutSkeleton = `import { Outlet, NavLink } from "react-router-dom";
+
+const navItems = [
+  { to: "/feed", label: "Home" },
+  { to: "/profile/me", label: "Profile" },
+];
 
 export default function Layout() {
   return (
     <div className="flex min-h-screen">
       <nav className="sticky top-0 flex h-screen w-64 flex-col gap-2 border-r border-slate-200 bg-white p-4">
-        {/* TODO: Render app title and navigation links */}
+        <h1 className="mb-6 text-xl font-bold text-brand-600">Twitter Clone</h1>
+
+        {/*  Here is what a single NavLink looks like with active styling:
+
+            <NavLink
+              key="/feed"
+              to="/feed"
+              className={({ isActive }) =>
+                \\\`rounded-xl px-4 py-3 text-sm font-medium transition \\\${
+                  isActive
+                    ? "bg-brand-50 text-brand-600"
+                    : "text-slate-600 hover:bg-slate-50"
+                }\\\`
+              }
+            >
+              Home
+            </NavLink>
+        */}
+
+        {/* TODO: Map over the 'navItems' array and render a <NavLink> for each item.
+            Use item.to as both the 'key' and 'to' props, item.label as children,
+            and the className callback pattern shown above. */}
       </nav>
 
       <main className="flex-1 p-6">
-        {/* TODO: Render <Outlet /> here */}
+        <Outlet />
       </main>
     </div>
   );
 }`;
 
-const m1t2LayoutSolution = `import { Outlet, NavLink } from "react-router-dom";
+const m2t1LayoutSolution = `import { Outlet, NavLink } from "react-router-dom";
 
 const navItems = [
   { to: "/feed", label: "Home" },
@@ -237,45 +261,11 @@ export default function Layout() {
   );
 }`;
 
-// M1T2 chains App.tsx — skeleton MUST equal M1T1 solution
-const m1t2AppSkeleton = m1t1AppSolution;
+// ═══════════════════════════════════════════════════════════════════════════
+// Module 3 — The Tweet Component
+// ═══════════════════════════════════════════════════════════════════════════
 
-const m1t2AppSolution = `import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import Layout from "./components/Layout";
-
-function LoginPage() {
-  return <div>Login page</div>;
-}
-
-function FeedPage() {
-  return <div>Feed page</div>;
-}
-
-function ProfilePage() {
-  return <div>Profile page</div>;
-}
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route element={<Layout />}>
-          <Route path="/" element={<Navigate to="/feed" replace />} />
-          <Route path="/feed" element={<FeedPage />} />
-          <Route path="/profile/:username" element={<ProfilePage />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/feed" replace />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}`;
-
-// ---------------------------------------------------------------------------
-// Module 2 — The Timeline Feed
-// ---------------------------------------------------------------------------
-
-const m2t1TweetCardSkeleton = `export interface TweetAuthor {
+const m3t1TweetCardSkeleton = `export interface TweetAuthor {
   id: string;
   name: string;
   handle: string;
@@ -290,26 +280,34 @@ export interface TweetCardProps {
   createdAt: string;
 }
 
-// TODO: Build a presentational tweet card component.
-// 1. Render a <header> with:
-//    a. The author's avatar as a rounded <img> (className="h-12 w-12 rounded-full object-cover").
-//    b. A <div> containing the author's name in an <h3> and handle in a <p> prefixed with "@".
-//    c. The createdAt timestamp aligned to the right (use "ml-auto").
-// 2. Render the tweet 'text' in a <p> tag below the header.
-// 3. Render a <footer> with the like count displayed as "{likes} likes".
-// 4. Use the outer <article> already provided — it has rounded corners and shadow.
-
 export default function TweetCard({ id, author, text, likes, createdAt }: TweetCardProps) {
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      {/* TODO: Render the tweet header with avatar, author name, handle, and timestamp */}
-      {/* TODO: Render the tweet body text */}
-      {/* TODO: Render the tweet footer with like count */}
+      {/*  The author header is already implemented for you. */}
+      <header className="flex items-center gap-3">
+        <img
+          src={author.avatarUrl}
+          alt={author.name}
+          className="h-12 w-12 rounded-full object-cover"
+        />
+        <div>
+          <h3 className="font-semibold text-slate-900">{author.name}</h3>
+          <p className="text-sm text-slate-500">@{author.handle}</p>
+        </div>
+        <span className="ml-auto text-xs text-slate-400">{createdAt}</span>
+      </header>
+
+      {/* TODO: Render the tweet body — a <p> displaying {text}.
+          Use className="mt-4 text-sm leading-6 text-slate-700" */}
+
+      {/* TODO: Render a <footer> displaying the like count.
+          Use className="mt-4 flex items-center border-t border-slate-100 pt-4 text-sm text-slate-500"
+          Inside, add a <span> showing "{likes} likes". */}
     </article>
   );
 }`;
 
-const m2t1TweetCardSolution = `export interface TweetAuthor {
+const m3t1TweetCardSolution = `export interface TweetAuthor {
   id: string;
   name: string;
   handle: string;
@@ -349,7 +347,11 @@ export default function TweetCard({ id, author, text, likes, createdAt }: TweetC
   );
 }`;
 
-const m2t2MainFeedSkeleton = `import { useEffect, useState } from "react";
+// ═══════════════════════════════════════════════════════════════════════════
+// Module 4 — The Feed Timeline
+// ═══════════════════════════════════════════════════════════════════════════
+
+const m4t1MainFeedSkeleton = `import { useEffect, useState } from "react";
 import TweetCard, { type TweetCardProps } from "../../../components/TweetCard";
 
 const mockTweets: TweetCardProps[] = [
@@ -391,26 +393,37 @@ const mockTweets: TweetCardProps[] = [
   },
 ];
 
-// TODO: Build the main feed component that simulates fetching tweets.
-// 1. Create a 'tweets' state variable (TweetCardProps[]) initialized to an empty array.
-// 2. Create an 'isLoading' state variable (boolean) initialized to true.
-// 3. Use useEffect to simulate a network request:
-//    a. Set a setTimeout of 400ms that sets 'tweets' to mockTweets and 'isLoading' to false.
-//    b. Return a cleanup function that clears the timeout using window.clearTimeout.
-// 4. If isLoading is true, return a loading placeholder:
-//    <div className="rounded-2xl bg-white p-6 text-slate-500 shadow-sm">Loading timeline...</div>
-// 5. Otherwise, map over 'tweets' and render a <TweetCard /> for each,
-//    passing tweet.id as the key and spreading the tweet object as props.
-
 export default function MainFeed() {
+  const [tweets, setTweets] = useState<TweetCardProps[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  //  The data-fetching simulation is already set up for you.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setTweets(mockTweets);
+      setIsLoading(false);
+    }, 400);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="rounded-2xl bg-white p-6 text-slate-500 shadow-sm">
+        Loading timeline...
+      </div>
+    );
+  }
+
   return (
     <section className="space-y-4">
-      {/* TODO: Implement the feed with loading state and tweet list */}
+      {/* TODO: Map over the 'tweets' array and render a <TweetCard /> for each tweet.
+          Use tweet.id as the key prop and spread the tweet object as props: {...tweet} */}
     </section>
   );
 }`;
 
-const m2t2MainFeedSolution = `import { useEffect, useState } from "react";
+const m4t1MainFeedSolution = `import { useEffect, useState } from "react";
 import TweetCard, { type TweetCardProps } from "../../../components/TweetCard";
 
 const mockTweets: TweetCardProps[] = [
@@ -482,32 +495,31 @@ export default function MainFeed() {
   );
 }`;
 
-// ---------------------------------------------------------------------------
-// Module 3 — Engagement State
-// ---------------------------------------------------------------------------
+// ═══════════════════════════════════════════════════════════════════════════
+// Module 5 — Engagement Logic
+// ═══════════════════════════════════════════════════════════════════════════
 
-const m3t1UseLikeToggleSkeleton = `import { useState } from "react";
-
-// TODO: Implement the useLikeToggle custom hook.
-// 1. Create a 'liked' state variable (boolean) initialized to 'initialLiked'.
-// 2. Create a 'likes' state variable (number) initialized to 'initialLikes'.
-// 3. Implement 'toggleLike' that:
-//    a. Flips the 'liked' state using the callback form of setLiked.
-//    b. Inside the setLiked callback, call setLikes to increment by 1
-//       if the new state is liked, or decrement by 1 if unliked.
-//    HINT: Use setLiked((currentLiked) => { ... return !currentLiked; })
-//    and call setLikes inside it to keep both updates in sync.
-// 4. Return an object with { liked, likes, toggleLike }.
+const m5t1UseLikeToggleSkeleton = `import { useState } from "react";
 
 export function useLikeToggle(initialLikes: number, initialLiked = false) {
-  return {
-    liked: initialLiked,
-    likes: initialLikes,
-    toggleLike: () => {},
-  };
+  //  The state variables are already declared for you.
+  const [liked, setLiked] = useState(initialLiked);
+  const [likes, setLikes] = useState(initialLikes);
+
+  // TODO: Implement the toggleLike function.
+  // It should flip 'liked' and adjust 'likes' by +1 or -1.
+  // Use the callback form of setLiked to avoid stale closures:
+  //   setLiked((currentLiked) => {
+  //     const nextLiked = !currentLiked;
+  //     setLikes((currentLikes) => nextLiked ? currentLikes + 1 : currentLikes - 1);
+  //     return nextLiked;
+  //   });
+  const toggleLike = () => {};
+
+  return { liked, likes, toggleLike };
 }`;
 
-const m3t1UseLikeToggleSolution = `import { useState } from "react";
+const m5t1UseLikeToggleSolution = `import { useState } from "react";
 
 export function useLikeToggle(initialLikes: number, initialLiked = false) {
   const [liked, setLiked] = useState(initialLiked);
@@ -521,17 +533,13 @@ export function useLikeToggle(initialLikes: number, initialLiked = false) {
     });
   };
 
-  return {
-    liked,
-    likes,
-    toggleLike,
-  };
+  return { liked, likes, toggleLike };
 }`;
 
-// M3T2 chains TweetCard.tsx — skeleton MUST equal M2T1 solution
-const m3t2TweetCardSkeleton = m2t1TweetCardSolution;
+// M5T2 chains TweetCard.tsx — skeleton MUST equal M3T1 solution
+const m5t2TweetCardSkeleton = m3t1TweetCardSolution;
 
-const m3t2TweetCardSolution = `import { useLikeToggle } from "../features/tweets/hooks/useLikeToggle";
+const m5t2TweetCardSolution = `import { useLikeToggle } from "../features/tweets/hooks/useLikeToggle";
 
 export interface TweetAuthor {
   id: string;
@@ -582,11 +590,11 @@ export default function TweetCard({ id, author, text, likes: initialLikes, creat
   );
 }`;
 
-// ---------------------------------------------------------------------------
-// Module 4 — Authentication UI
-// ---------------------------------------------------------------------------
+// ═══════════════════════════════════════════════════════════════════════════
+// Module 6 — Authentication
+// ═══════════════════════════════════════════════════════════════════════════
 
-const m4t1LoginFormSkeleton = `import { type FormEvent, useState } from "react";
+const m6t1LoginFormSkeleton = `import { type FormEvent, useState } from "react";
 
 export interface LoginFormValues {
   email: string;
@@ -598,42 +606,58 @@ interface LoginFormProps {
   isLoading?: boolean;
 }
 
-// TODO: Implement the login form with controlled inputs.
-// 1. Create a 'values' state variable of type LoginFormValues,
-//    initialized with empty strings for email and password.
-// 2. Create an 'error' state variable (string | null) initialized to null.
-// 3. In handleSubmit:
-//    a. Call event.preventDefault() to stop the default form submission.
-//    b. Clear any previous error by setting it to null.
-//    c. Validate that both email and password are non-empty (after trimming).
-//       If invalid, set error to "Email and password are required." and return.
-//    d. Call await onSubmit(values) with the current form values.
-// 4. Render two labeled inputs:
-//    a. Email input: id="email", type="email", autoComplete="email",
-//       value bound to values.email, onChange updates values.email.
-//    b. Password input: id="password", type="password", autoComplete="current-password",
-//       value bound to values.password, onChange updates values.password.
-// 5. If 'error' is not null, render it in a <p> with className "text-sm text-red-600".
-// 6. Render a submit <button> that shows "Signing in..." when isLoading is true,
-//    and "Sign in" otherwise. Disable the button when isLoading is true.
-
 export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const [values, setValues] = useState<LoginFormValues>({
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // TODO: implement validation and call onSubmit
+    setError(null);
+
+    if (!values.email.trim() || !values.password.trim()) {
+      setError("Email and password are required.");
+      return;
+    }
+
+    await onSubmit(values);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl bg-white p-6 shadow-soft">
-      {/* TODO: Render email input with label */}
-      {/* TODO: Render password input with label */}
-      {/* TODO: Render error message if present */}
-      {/* TODO: Render submit button */}
+      {/*  The email input is already implemented for you. */}
+      <div>
+        <label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-700">
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          autoComplete="email"
+          value={values.email}
+          onChange={(event) => setValues((current) => ({ ...current, email: event.target.value }))}
+          className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-brand-500"
+          placeholder="you@example.com"
+        />
+      </div>
+
+      {/* TODO: Add the password input following the email pattern above.
+          Use id="password", type="password", autoComplete="current-password",
+          bind value to values.password, update on change, placeholder="Enter your password". */}
+
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+      {/* TODO: Add a submit <button> with type="submit".
+          Disable it when isLoading is true.
+          Show "Signing in..." when loading, "Sign in" otherwise.
+          Use className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70" */}
     </form>
   );
 }`;
 
-const m4t1LoginFormSolution = `import { type FormEvent, useState } from "react";
+const m6t1LoginFormSolution = `import { type FormEvent, useState } from "react";
 
 export interface LoginFormValues {
   email: string;
@@ -709,7 +733,8 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
   );
 }`;
 
-const m4t2AuthStoreSkeleton = `import { create } from "zustand";
+const m6t2AuthStoreSkeleton = `import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface AuthUser {
   id: string;
@@ -726,29 +751,33 @@ interface AuthState {
   logout: () => void;
 }
 
-// TODO: Create the auth store using Zustand with the persist middleware.
-// 1. Import { persist } from "zustand/middleware".
-// 2. Wrap the store creator function with persist() to enable localStorage hydration.
-//    The structure is: create<AuthState>()(persist((set) => ({ ... }), { ... }))
-// 3. Implement the 'login' action:
-//    a. Accept a payload with { user, token }.
-//    b. Call set() to update user, token, and set isAuthenticated to true.
-// 4. Implement the 'logout' action:
-//    a. Call set() to set user to null, token to null, and isAuthenticated to false.
-// 5. Configure the persist middleware options:
-//    a. Use "twitter-clone-auth" as the 'name' (localStorage key).
-//    b. Use 'partialize' to only persist the 'user' and 'token' fields:
-//       partialize: (state) => ({ user: state.user, token: state.token })
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      token: null,
+      isAuthenticated: false,
 
-export const useAuthStore = create<AuthState>()((set) => ({
-  user: null,
-  token: null,
-  isAuthenticated: false,
-  login: () => {},
-  logout: () => {},
-}));`;
+      //  The login action is already implemented for you.
+      login: ({ user, token }) =>
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+        }),
 
-const m4t2AuthStoreSolution = `import { create } from "zustand";
+      // TODO: Implement the logout action.
+      // Call set() to reset user to null, token to null, and isAuthenticated to false.
+      logout: () => {},
+    }),
+    {
+      name: "twitter-clone-auth",
+      partialize: (state) => ({ user: state.user, token: state.token }),
+    },
+  ),
+);`;
+
+const m6t2AuthStoreSolution = `import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface AuthUser {
@@ -792,9 +821,9 @@ export const useAuthStore = create<AuthState>()(
   ),
 );`;
 
-// ---------------------------------------------------------------------------
+// ═══════════════════════════════════════════════════════════════════════════
 // Full Project Seed
-// ---------------------------------------------------------------------------
+// ═══════════════════════════════════════════════════════════════════════════
 
 const twitterCloneProject: SeedProject = {
   title: "Build a Full-Stack Twitter Clone",
@@ -860,27 +889,26 @@ const twitterCloneProject: SeedProject = {
   ],
   foundationalFiles,
   modules: [
-    // -----------------------------------------------------------------------
-    // Module 1: Routing & Layout
-    // -----------------------------------------------------------------------
+    // ═════════════════════════════════════════════════════════════════════
+    // Module 1: Base Routing
+    // ═════════════════════════════════════════════════════════════════════
     {
-      title: "Routing & Layout",
+      title: "Base Routing",
       description:
-        "Set up client-side routing with React Router and build a persistent layout shell with navigation.",
+        "Set up client-side routing with React Router by adding routes for login and profile pages.",
       order: 1,
       tasks: [
         {
-          title: "Setup React Router inside App.tsx",
+          title: "Add the login and profile routes to App.tsx",
           description:
-            "Define the application routes with React Router, including placeholder pages and a catch-all redirect.",
+            "The BrowserRouter and feed route are already configured. Add the remaining two routes following the same pattern.",
           order: 1,
           instructions:
-            "Create three simple placeholder page components (LoginPage, FeedPage, ProfilePage) and wire them into a BrowserRouter with the correct route paths. Add a catch-all route that redirects unknown paths to /feed.",
+            "The /feed route is already provided as an example. Follow the exact same <Route> pattern to add a /login route rendering <LoginPage /> and a /profile/:username route rendering <ProfilePage />.",
           difficulty: "Beginner",
           skillCategory: "Frontend",
-          skillPoints: 12,
-          concepts:
-            "React Router, BrowserRouter, Route, Navigate, route parameters",
+          skillPoints: 10,
+          concepts: "React Router, Route, path parameters, Navigate redirect",
           files: [
             {
               path: "src/App.tsx",
@@ -898,63 +926,15 @@ const twitterCloneProject: SeedProject = {
               },
               {
                 id: "opt_b",
-                text: "It replaces the text content of the current page with the feed content",
+                text: "It replaces the text content of the page with the feed content",
               },
               {
                 id: "opt_c",
-                text: "It replaces the /feed route definition with a new one",
+                text: "It replaces the /feed route definition with the catch-all route",
               },
               {
                 id: "opt_d",
-                text: "It forces the browser to do a full page refresh instead of a client-side navigation",
-              },
-            ],
-            correctAnswer: "opt_a",
-          },
-        },
-        {
-          title: "Create the Layout.tsx shell with Sidebar and Outlet",
-          description:
-            "Build a persistent layout component with a sidebar navigation and an Outlet for nested child routes.",
-          order: 2,
-          instructions:
-            "Create a Layout component that renders a sidebar with navigation links and a main content area. Then update App.tsx to wrap the feed and profile routes inside this layout using a pathless parent route.",
-          difficulty: "Beginner",
-          skillCategory: "Frontend",
-          skillPoints: 14,
-          concepts:
-            "Outlet, NavLink, nested routing, layout composition, pathless routes",
-          files: [
-            {
-              path: "src/components/Layout.tsx",
-              skeleton: m1t2LayoutSkeleton,
-              solution: m1t2LayoutSolution,
-            },
-            {
-              path: "src/App.tsx",
-              skeleton: m1t2AppSkeleton,
-              solution: m1t2AppSolution,
-            },
-          ],
-          mcq: {
-            question:
-              "What is the purpose of <Outlet /> in a React Router layout component?",
-            options: [
-              {
-                id: "opt_a",
-                text: "It renders the matched child route's component inside the layout, enabling shared UI like sidebars to persist across pages",
-              },
-              {
-                id: "opt_b",
-                text: "It creates a new independent routing context that ignores the parent route",
-              },
-              {
-                id: "opt_c",
-                text: "It automatically redirects to the first child route defined under the layout",
-              },
-              {
-                id: "opt_d",
-                text: "It provides error boundary functionality for any errors thrown in child routes",
+                text: "It forces the browser to do a full page refresh instead of client-side navigation",
               },
             ],
             correctAnswer: "opt_a",
@@ -962,32 +942,86 @@ const twitterCloneProject: SeedProject = {
         },
       ],
     },
-    // -----------------------------------------------------------------------
-    // Module 2: The Timeline Feed
-    // -----------------------------------------------------------------------
+    // ═════════════════════════════════════════════════════════════════════
+    // Module 2: Layout & Navigation
+    // ═════════════════════════════════════════════════════════════════════
     {
-      title: "The Timeline Feed",
+      title: "Layout & Navigation",
       description:
-        "Create a reusable tweet card component and a feed timeline that simulates data fetching.",
+        "Build a persistent layout shell with a sidebar navigation using NavLink components.",
       order: 2,
       tasks: [
         {
-          title: "Extract the TweetCard UI component",
+          title: "Map the navigation links inside the sidebar",
           description:
-            "Build a typed, reusable presentational tweet card that renders author info, tweet text, and engagement metrics.",
+            "The layout shell, navItems array, and Outlet are provided. Your job is to render the nav links dynamically.",
           order: 1,
           instructions:
-            "Implement the TweetCard component body. Render the author's avatar, name, handle, and a timestamp in a header. Display the tweet text below it. Add a footer showing the like count. Use the pre-defined interfaces for type safety.",
+            "A commented-out example shows what a single NavLink looks like. Map over the navItems array and render a <NavLink> for each item using item.to as the key and to props, item.label as children, and the className callback with isActive for active/inactive styling.",
           difficulty: "Beginner",
           skillCategory: "Frontend",
-          skillPoints: 14,
+          skillPoints: 12,
           concepts:
-            "Props typing, component composition, presentational components, TypeScript interfaces",
+            "NavLink, isActive callback, array mapping, Outlet, layout composition",
+          files: [
+            {
+              path: "src/components/Layout.tsx",
+              skeleton: m2t1LayoutSkeleton,
+              solution: m2t1LayoutSolution,
+            },
+          ],
+          mcq: {
+            question:
+              "What does NavLink's className callback receive that a regular <a> tag does not?",
+            options: [
+              {
+                id: "opt_a",
+                text: "An object with an 'isActive' boolean that tells you if the link matches the current URL, enabling dynamic styling",
+              },
+              {
+                id: "opt_b",
+                text: "The full browser history stack so you can check which pages were visited before",
+              },
+              {
+                id: "opt_c",
+                text: "A ref to the DOM element so you can measure its position on screen",
+              },
+              {
+                id: "opt_d",
+                text: "An event object that fires every time the user hovers over the link",
+              },
+            ],
+            correctAnswer: "opt_a",
+          },
+        },
+      ],
+    },
+    // ═════════════════════════════════════════════════════════════════════
+    // Module 3: The Tweet Component
+    // ═════════════════════════════════════════════════════════════════════
+    {
+      title: "The Tweet Component",
+      description:
+        "Build a presentational tweet card by implementing the body and footer sections.",
+      order: 3,
+      tasks: [
+        {
+          title: "Render the tweet body and like count in TweetCard",
+          description:
+            "The card shell and author header are pre-built. Add the tweet text body and the engagement footer.",
+          order: 1,
+          instructions:
+            "The author header (avatar, name, handle, timestamp) is already implemented. Add a <p> tag below the header to display the tweet text, and a <footer> element showing the like count as '{likes} likes'. Use the className values provided in the TODO comments.",
+          difficulty: "Beginner",
+          skillCategory: "Frontend",
+          skillPoints: 12,
+          concepts:
+            "Props rendering, JSX expressions, presentational components, TypeScript interfaces",
           files: [
             {
               path: "src/components/TweetCard.tsx",
-              skeleton: m2t1TweetCardSkeleton,
-              solution: m2t1TweetCardSolution,
+              skeleton: m3t1TweetCardSkeleton,
+              solution: m3t1TweetCardSolution,
             },
           ],
           mcq: {
@@ -1000,7 +1034,7 @@ const twitterCloneProject: SeedProject = {
               },
               {
                 id: "opt_b",
-                text: "React components are not allowed to make API calls directly",
+                text: "React components cannot make API calls directly",
               },
               {
                 id: "opt_c",
@@ -1014,23 +1048,34 @@ const twitterCloneProject: SeedProject = {
             correctAnswer: "opt_a",
           },
         },
+      ],
+    },
+    // ═════════════════════════════════════════════════════════════════════
+    // Module 4: The Feed Timeline
+    // ═════════════════════════════════════════════════════════════════════
+    {
+      title: "The Feed Timeline",
+      description:
+        "Render a feed timeline by mapping mock tweet data into TweetCard components.",
+      order: 4,
+      tasks: [
         {
-          title: "Fetch mock data and render TweetCards in MainFeed.tsx",
+          title: "Map the tweets array into TweetCard components",
           description:
-            "Build a feed container that simulates an API call, handles a loading state, and maps over tweet data to render TweetCard components.",
-          order: 2,
+            "The mock data, state management, and loading UI are all provided. Your job is to render the tweet list.",
+          order: 1,
           instructions:
-            "Use useState to manage the tweets array and loading state. Use useEffect with setTimeout to simulate a network fetch of the provided mockTweets data. Show a loading placeholder while data loads. Once loaded, map over the tweets and render a TweetCard for each one.",
-          difficulty: "Intermediate",
+            "The useEffect already fetches mockTweets into the tweets state, and the loading state is handled. Inside the <section>, map over the tweets array and render a <TweetCard /> for each tweet. Pass tweet.id as the key prop and spread the entire tweet object as props using {...tweet}.",
+          difficulty: "Beginner",
           skillCategory: "Frontend",
-          skillPoints: 18,
+          skillPoints: 14,
           concepts:
-            "useEffect, useState, mock data fetching, list rendering, cleanup functions, loading states",
+            "List rendering, key prop, spread props, useEffect lifecycle, loading states",
           files: [
             {
               path: "src/features/feed/components/MainFeed.tsx",
-              skeleton: m2t2MainFeedSkeleton,
-              solution: m2t2MainFeedSolution,
+              skeleton: m4t1MainFeedSkeleton,
+              solution: m4t1MainFeedSolution,
             },
           ],
           mcq: {
@@ -1059,32 +1104,32 @@ const twitterCloneProject: SeedProject = {
         },
       ],
     },
-    // -----------------------------------------------------------------------
-    // Module 3: Engagement State
-    // -----------------------------------------------------------------------
+    // ═════════════════════════════════════════════════════════════════════
+    // Module 5: Engagement Logic
+    // ═════════════════════════════════════════════════════════════════════
     {
-      title: "Engagement State",
+      title: "Engagement Logic",
       description:
-        "Implement social interaction logic with a custom hook and wire it into the tweet card component.",
-      order: 3,
+        "Build a custom hook for like/unlike toggling and wire it into the tweet card.",
+      order: 5,
       tasks: [
         {
-          title: "Implement useLikeToggle.ts custom hook",
+          title: "Implement the toggleLike function in useLikeToggle",
           description:
-            "Create a custom React hook that encapsulates the like/unlike toggle logic with synchronized state updates.",
+            "The hook signature and state declarations are provided. Implement the toggle logic that flips liked and adjusts the count.",
           order: 1,
           instructions:
-            "Implement the useLikeToggle hook using useState for both the liked boolean and the likes count. The toggleLike function should flip the liked state and adjust the count atomically using the callback form of setState to prevent stale closure bugs.",
+            "The liked and likes state variables are already declared. Fill in the toggleLike function body. Use the callback form of setLiked to flip the boolean, and inside that callback, call setLikes to increment or decrement the count based on the new liked value.",
           difficulty: "Intermediate",
           skillCategory: "Frontend",
           skillPoints: 16,
           concepts:
-            "Custom hooks, useState callback form, derived state, state synchronization",
+            "Custom hooks, useState callback form, state synchronization, closure safety",
           files: [
             {
               path: "src/features/tweets/hooks/useLikeToggle.ts",
-              skeleton: m3t1UseLikeToggleSkeleton,
-              solution: m3t1UseLikeToggleSolution,
+              skeleton: m5t1UseLikeToggleSkeleton,
+              solution: m5t1UseLikeToggleSolution,
             },
           ],
           mcq: {
@@ -1112,12 +1157,12 @@ const twitterCloneProject: SeedProject = {
           },
         },
         {
-          title: "Wire useLikeToggle into the TweetCard component",
+          title: "Wire useLikeToggle into the TweetCard like button",
           description:
-            "Integrate the useLikeToggle hook into the existing TweetCard to add interactive like/unlike functionality.",
+            "The TweetCard from Module 3 is your starting point. Import the hook and add an interactive like/unlike button to the footer.",
           order: 2,
           instructions:
-            "Import useLikeToggle into TweetCard. Rename the 'likes' prop to 'initialLikes' in the destructuring to avoid conflicts. Call useLikeToggle(initialLikes) to get the mutable liked state, count, and toggle function. Update the footer to show a Like/Liked button with conditional styling based on the liked state.",
+            "Import useLikeToggle from the hooks directory. Rename the 'likes' prop to 'initialLikes' in the destructuring to avoid naming conflicts. Call useLikeToggle(initialLikes) to get { liked, likes, toggleLike }. Update the footer to use the hook's 'likes' value and add a <button> that calls toggleLike on click, showing 'Liked' or 'Like' based on the liked state.",
           difficulty: "Intermediate",
           skillCategory: "Frontend",
           skillPoints: 16,
@@ -1126,21 +1171,21 @@ const twitterCloneProject: SeedProject = {
           files: [
             {
               path: "src/components/TweetCard.tsx",
-              skeleton: m3t2TweetCardSkeleton,
-              solution: m3t2TweetCardSolution,
+              skeleton: m5t2TweetCardSkeleton,
+              solution: m5t2TweetCardSolution,
             },
           ],
           mcq: {
             question:
-              "In TweetCard, why is the 'likes' prop renamed to 'initialLikes' in the destructuring { likes: initialLikes }?",
+              "Why is the 'likes' prop renamed to 'initialLikes' in the destructuring { likes: initialLikes }?",
             options: [
               {
                 id: "opt_a",
-                text: "To avoid a naming conflict with the 'likes' value returned from the useLikeToggle hook, which tracks the mutable count",
+                text: "To avoid a naming conflict with the 'likes' value returned from useLikeToggle, which tracks the mutable count",
               },
               {
                 id: "opt_b",
-                text: "TypeScript requires all props to be renamed when they are used alongside custom hooks",
+                text: "TypeScript requires all props to be renamed when used alongside custom hooks",
               },
               {
                 id: "opt_c",
@@ -1148,7 +1193,7 @@ const twitterCloneProject: SeedProject = {
               },
               {
                 id: "opt_d",
-                text: "React Router requires this specific naming convention for route parameters passed as props",
+                text: "React Router requires this naming convention for route parameters passed as props",
               },
             ],
             correctAnswer: "opt_a",
@@ -1156,32 +1201,32 @@ const twitterCloneProject: SeedProject = {
         },
       ],
     },
-    // -----------------------------------------------------------------------
-    // Module 4: Authentication UI
-    // -----------------------------------------------------------------------
+    // ═════════════════════════════════════════════════════════════════════
+    // Module 6: Authentication
+    // ═════════════════════════════════════════════════════════════════════
     {
-      title: "Authentication UI",
+      title: "Authentication",
       description:
-        "Build the login form with controlled inputs and persist authentication state with Zustand.",
-      order: 4,
+        "Build the login form UI and persist authentication state with Zustand.",
+      order: 6,
       tasks: [
         {
-          title: "Implement the controlled inputs inside LoginForm.tsx",
+          title: "Add the password input and submit button to LoginForm",
           description:
-            "Create a fully controlled login form with email and password fields, client-side validation, and submit handling.",
+            "The form structure, state management, validation, and email input are provided. Follow the email pattern to add the remaining fields.",
           order: 1,
           instructions:
-            "Use useState to manage the form values (email, password) and an error message. Implement handleSubmit to validate both fields are non-empty before calling the onSubmit prop. Render labeled input fields with their values bound to state and onChange handlers that update state. Show validation errors and a loading-aware submit button.",
+            "The email input is already fully implemented as your reference. Add a password input field following the same pattern (wrapped in a <div> with a <label> and <input>), using type='password' and binding to values.password. Then add a submit <button> that shows 'Signing in...' when isLoading is true and 'Sign in' otherwise.",
           difficulty: "Beginner",
           skillCategory: "Frontend",
           skillPoints: 14,
           concepts:
-            "Controlled inputs, form state, event handling, client-side validation, async submit",
+            "Controlled inputs, form patterns, submit state, disabled state, template duplication",
           files: [
             {
               path: "src/features/auth/components/LoginForm.tsx",
-              skeleton: m4t1LoginFormSkeleton,
-              solution: m4t1LoginFormSolution,
+              skeleton: m6t1LoginFormSkeleton,
+              solution: m6t1LoginFormSolution,
             },
           ],
           mcq: {
@@ -1190,15 +1235,15 @@ const twitterCloneProject: SeedProject = {
             options: [
               {
                 id: "opt_a",
-                text: "Its value is driven by React state (value={values.email}) and updates are handled via onChange, making React the single source of truth",
+                text: "Its value is driven by React state (value={values.email}) and updates go through onChange, making React the single source of truth",
               },
               {
                 id: "opt_b",
-                text: "It has an id attribute that React uses to directly control the DOM element",
+                text: "It has an id attribute that React uses to control the DOM element directly",
               },
               {
                 id: "opt_c",
-                text: "It is placed inside a <form> element that has an onSubmit handler",
+                text: "It is inside a <form> element that has an onSubmit handler attached",
               },
               {
                 id: "opt_d",
@@ -1209,22 +1254,22 @@ const twitterCloneProject: SeedProject = {
           },
         },
         {
-          title: "Wire the Zustand authStore.ts login/logout logic",
+          title: "Implement the logout action in authStore",
           description:
-            "Create a Zustand store with persist middleware that manages authentication state across browser sessions.",
+            "The Zustand store with persist middleware and the login action are provided. Add the missing logout action.",
           order: 2,
           instructions:
-            "Import the persist middleware from zustand/middleware. Wrap the store creator with persist() and configure it with a localStorage key. Implement the login action to store the user and token, and the logout action to clear them. Use partialize to only persist user and token, not the derived isAuthenticated field.",
+            "The login action shows exactly how to call set() with a state update object. Follow the same pattern to implement logout — call set() to reset user to null, token to null, and isAuthenticated to false.",
           difficulty: "Intermediate",
           skillCategory: "Frontend",
-          skillPoints: 16,
+          skillPoints: 14,
           concepts:
-            "Zustand, persist middleware, auth state, localStorage hydration, partialize",
+            "Zustand, persist middleware, set action, state reset, localStorage hydration",
           files: [
             {
               path: "src/features/auth/stores/authStore.ts",
-              skeleton: m4t2AuthStoreSkeleton,
-              solution: m4t2AuthStoreSolution,
+              skeleton: m6t2AuthStoreSkeleton,
+              solution: m6t2AuthStoreSolution,
             },
           ],
           mcq: {
@@ -1245,7 +1290,7 @@ const twitterCloneProject: SeedProject = {
               },
               {
                 id: "opt_d",
-                text: "It prevents certain store actions from being called until the store has fully hydrated from localStorage",
+                text: "It prevents certain store actions from being called until the store has hydrated from localStorage",
               },
             ],
             correctAnswer: "opt_a",
