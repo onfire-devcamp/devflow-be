@@ -198,10 +198,16 @@ export const getProjectRoadmap = async (
   const progressPercentage =
     totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
 
+  const progress =
+    userId && isValidObjectId(userId)
+      ? await UserProgress.findOne({ userId, projectId }).lean()
+      : null;
+
   return {
     project: {
       ...toProjectSummaryView(project),
       progressPercentage,
+      isInitialized: !!progress,
     },
     modules: roadmapModules,
   };

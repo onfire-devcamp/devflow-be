@@ -80,6 +80,7 @@ export interface ProjectSummaryView {
   progressPercentage?: number;
   moduleCount?: number;
   estimatedHours?: number;
+  isInitialized?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
