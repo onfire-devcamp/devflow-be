@@ -52,6 +52,7 @@ export interface TaskView {
   };
   skillCategory: SkillCategory;
   skillPoints: number;
+  aiScore?: number;
   status?: TaskRoadmapStatus;
   createdAt: Date;
   updatedAt: Date;

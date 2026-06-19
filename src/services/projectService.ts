@@ -168,6 +168,22 @@ export const getProjectRoadmap = async (
       ? await buildCompletedTaskIdSet(userId, projectId)
       : new Set<string>();
 
+  const taskScores = new Map<string, number>();
+  if (userId && isValidObjectId(userId)) {
+    const aiEvals = await AIEvaluation.find({
+      userId,
+      projectId,
+      type: EVAL_TYPE.EXPLAIN_TO_PASS,
+      passStatus: EVAL_STATUS.PASS,
+    }).lean();
+    for (const ev of aiEvals) {
+      taskScores.set(
+        toIdString(ev.taskId as mongoose.Types.ObjectId),
+        ev.score,
+      );
+    }
+  }
+
   let nextModuleUnlocked = true;
   const roadmapModules: ModuleWithTasksView[] = [];
 
@@ -175,6 +191,7 @@ export const getProjectRoadmap = async (
     const moduleKey = toIdString(module._id);
     const moduleTasks = (tasksByModuleId.get(moduleKey) ?? []).map((task) => ({
       ...task,
+      aiScore: taskScores.get(task._id),
       status: resolveTaskRoadmapStatus(
         task._id,
         completedTaskIds,
