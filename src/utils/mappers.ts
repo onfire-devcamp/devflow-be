@@ -54,6 +54,7 @@ export const toFileTemplateView = (
   projectId: toIdString(fileTemplate.projectId),
   path: fileTemplate.path,
   content: fileTemplate.content,
+  readOnly: fileTemplate.readOnly ?? false,
   createdAt: fileTemplate.createdAt,
   updatedAt: fileTemplate.updatedAt,
 });
@@ -126,6 +127,7 @@ export const toProjectSummaryView = (
   slug: project.slug,
   description: project.description,
   level: project.level,
+  category: project.category,
   previewUrl: project.previewUrl,
   systemFlowUrl: project.systemFlowUrl,
   createdAt: project.createdAt,

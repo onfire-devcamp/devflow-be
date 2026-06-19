@@ -132,22 +132,33 @@ export const initializeWorkspace = async (
     taskId,
   );
 
-  const fileTemplates = await FileTemplate.find({
+  // Load task-specific files
+  const taskFileTemplates = await FileTemplate.find({
     _id: { $in: task.fileId },
     projectId,
   }).lean();
 
+  // Load foundational (read-only) files for the entire project
+  const foundationalTemplates = await FileTemplate.find({
+    projectId,
+    readOnly: true,
+  }).lean();
+
+  // Combine both sets — foundational files are always available
+  const allTemplates = [...taskFileTemplates, ...foundationalTemplates];
+  const allTemplateIds = allTemplates.map((ft) => ft._id);
+
   const existingUserFiles = await UserFile.find({
     userId,
     projectId,
-    fileId: { $in: fileTemplates.map((ft) => ft._id) },
+    fileId: { $in: allTemplateIds },
   }).lean();
 
   const existingFileIdSet = new Set(
     existingUserFiles.map((file) => toIdString(file.fileId)),
   );
 
-  const newUserFiles = fileTemplates
+  const newUserFiles = allTemplates
     .filter((ft) => !existingFileIdSet.has(toIdString(ft._id)))
     .map((ft) => ({
       userId,
@@ -278,6 +289,13 @@ export const saveUserFile = async ({
 }: SaveUserFileInput): Promise<UserWorkspaceFileView> => {
   if (![userId, projectId, fileId].every(isValidObjectId)) {
     throw new BadRequestError("Invalid workspace file identifiers.");
+  }
+
+  const fileTemplate = await FileTemplate.findById(fileId)
+    .select("readOnly")
+    .lean();
+  if (fileTemplate?.readOnly) {
+    throw new ForbiddenError("This file is read-only and cannot be edited.");
   }
 
   const updatedUserFile = await UserFile.findOneAndUpdate(

@@ -52,6 +52,7 @@ export const getAllProjects = async (): Promise<ProjectSummaryView[]> => {
     slug: project.slug,
     description: project.description,
     level: project.level,
+    category: project.category,
     previewUrl: project.previewUrl,
     systemFlowUrl: project.systemFlowUrl,
     createdAt: project.createdAt,
@@ -67,16 +68,22 @@ export const getProjectDetails = async (
   const project = await Project.findOne({ slug }).lean();
   if (!project) throw new NotFoundError("Project not found.");
 
+  const moduleCount = await Module.countDocuments({ projectId: project._id });
+  const estimatedHours = moduleCount * 5;
+
   return {
     _id: toIdString(project._id),
     title: project.title,
     slug: project.slug,
     description: project.description,
     level: project.level,
+    category: project.category,
     previewUrl: project.previewUrl,
     systemFlowUrl: project.systemFlowUrl,
     techStack: project.techStack,
     features: project.features,
+    moduleCount,
+    estimatedHours,
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
   };

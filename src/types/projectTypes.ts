@@ -10,6 +10,7 @@ export interface FileTemplateView {
   projectId: string;
   path: string;
   content: string;
+  readOnly: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -71,11 +72,14 @@ export interface ProjectSummaryView {
   _id: string;
   title: string;
   slug: string;
-  description?: string;
-  level: ProjectLevel;
+  description: string;
+  level: string;
+  category: string;
   previewUrl?: string;
   systemFlowUrl?: string;
   progressPercentage?: number;
+  moduleCount?: number;
+  estimatedHours?: number;
   createdAt: Date;
   updatedAt: Date;
 }
