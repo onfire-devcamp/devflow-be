@@ -78,6 +78,8 @@ export interface ProjectSummaryView {
   previewUrl?: string;
   systemFlowUrl?: string;
   progressPercentage?: number;
+  moduleCount?: number;
+  estimatedHours?: number;
   createdAt: Date;
   updatedAt: Date;
 }
