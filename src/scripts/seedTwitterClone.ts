@@ -122,19 +122,28 @@ createRoot(document.getElementById("root")!).render(
 // Module 1 — Base Routing
 // ═══════════════════════════════════════════════════════════════════════════
 
-const m1t1AppSkeleton = `import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-
-function LoginPage() {
-  return <div>Login page</div>;
-}
-
-function FeedPage() {
+const m1t1PagesIndexSkeleton = `export function FeedPage() {
   return <div>Feed page</div>;
 }
 
-function ProfilePage() {
-  return <div>Profile page</div>;
+// TODO: Export LoginPage (a simple div containing "Login page")
+// TODO: Export ProfilePage (a simple div containing "Profile page")`;
+
+const m1t1PagesIndexSolution = `export function FeedPage() {
+  return <div>Feed page</div>;
 }
+
+export function LoginPage() {
+  return <div>Login page</div>;
+}
+
+export function ProfilePage() {
+  return <div>Profile page</div>;
+}`;
+
+const m1t1AppSkeleton = `import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+// TODO: Import LoginPage and ProfilePage from "./pages"
+import { FeedPage } from "./pages";
 
 export default function App() {
   return (
@@ -153,18 +162,7 @@ export default function App() {
 }`;
 
 const m1t1AppSolution = `import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-
-function LoginPage() {
-  return <div>Login page</div>;
-}
-
-function FeedPage() {
-  return <div>Feed page</div>;
-}
-
-function ProfilePage() {
-  return <div>Profile page</div>;
-}
+import { FeedPage, LoginPage, ProfilePage } from "./pages";
 
 export default function App() {
   return (
@@ -351,10 +349,27 @@ export default function TweetCard({ id, author, text, likes, createdAt }: TweetC
 // Module 4 — The Feed Timeline
 // ═══════════════════════════════════════════════════════════════════════════
 
-const m4t1MainFeedSkeleton = `import { useEffect, useState } from "react";
-import TweetCard, { type TweetCardProps } from "../../../components/TweetCard";
+const m4t1MockDataSkeleton = `import type { TweetCardProps } from "../components/TweetCard";
 
-const mockTweets: TweetCardProps[] = [
+export const mockTweets: TweetCardProps[] = [
+  {
+    id: "1",
+    author: {
+      id: "u1",
+      name: "Ada Lovelace",
+      handle: "ada",
+      avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
+    },
+    text: "Just shipped the first version of my Twitter clone timeline. The component composition pattern is so clean!",
+    likes: 128,
+    createdAt: "2h",
+  },
+  // TODO: Add at least one more mock tweet to the array using the same structure
+];`;
+
+const m4t1MockDataSolution = `import type { TweetCardProps } from "../components/TweetCard";
+
+export const mockTweets: TweetCardProps[] = [
   {
     id: "1",
     author: {
@@ -391,7 +406,11 @@ const mockTweets: TweetCardProps[] = [
     likes: 256,
     createdAt: "8h",
   },
-];
+];`;
+
+const m4t1MainFeedSkeleton = `import { useEffect, useState } from "react";
+import TweetCard, { type TweetCardProps } from "../../../components/TweetCard";
+// TODO: Import 'mockTweets' from "../../../utils/mockData"
 
 export default function MainFeed() {
   const [tweets, setTweets] = useState<TweetCardProps[]>([]);
@@ -400,7 +419,7 @@ export default function MainFeed() {
   //  The data-fetching simulation is already set up for you.
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setTweets(mockTweets);
+      // TODO: Call setTweets(mockTweets)
       setIsLoading(false);
     }, 400);
 
@@ -425,45 +444,7 @@ export default function MainFeed() {
 
 const m4t1MainFeedSolution = `import { useEffect, useState } from "react";
 import TweetCard, { type TweetCardProps } from "../../../components/TweetCard";
-
-const mockTweets: TweetCardProps[] = [
-  {
-    id: "1",
-    author: {
-      id: "u1",
-      name: "Ada Lovelace",
-      handle: "ada",
-      avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
-    },
-    text: "Just shipped the first version of my Twitter clone timeline. The component composition pattern is so clean!",
-    likes: 128,
-    createdAt: "2h",
-  },
-  {
-    id: "2",
-    author: {
-      id: "u2",
-      name: "Grace Hopper",
-      handle: "grace",
-      avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop",
-    },
-    text: "A clean component hierarchy makes the feed easy to extend. Separation of concerns FTW.",
-    likes: 84,
-    createdAt: "5h",
-  },
-  {
-    id: "3",
-    author: {
-      id: "u3",
-      name: "Alan Turing",
-      handle: "alan",
-      avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
-    },
-    text: "Exploring the limits of computation, one React component at a time.",
-    likes: 256,
-    createdAt: "8h",
-  },
-];
+import { mockTweets } from "../../../utils/mockData";
 
 export default function MainFeed() {
   const [tweets, setTweets] = useState<TweetCardProps[]>([]);
@@ -594,35 +575,75 @@ export default function TweetCard({ id, author, text, likes: initialLikes, creat
 // Module 6 — Authentication
 // ═══════════════════════════════════════════════════════════════════════════
 
-const m6t1LoginFormSkeleton = `import { type FormEvent, useState } from "react";
-
-export interface LoginFormValues {
-  email: string;
-  password: string;
+const m6t1AuthApiSkeleton = `export interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    username: string;
+  };
 }
 
-interface LoginFormProps {
-  onSubmit: (values: LoginFormValues) => Promise<void> | void;
-  isLoading?: boolean;
-}
-
-export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
-  const [values, setValues] = useState<LoginFormValues>({
-    email: "",
-    password: "",
+export const loginRequest = async (email: string, password: string): Promise<AuthResponse> => {
+  return new Promise((resolve) => {
+    // Simulate a network request delay
+    setTimeout(() => {
+      // TODO: Call resolve() with a dummy AuthResponse object containing a token and a user object.
+      // Use "dummy-jwt-token-123" for the token, "u123" for the user id, the provided email, and derive a username from the email.
+    }, 1000);
   });
+};`;
+
+const m6t1AuthApiSolution = `export interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    username: string;
+  };
+}
+
+export const loginRequest = async (email: string, password: string): Promise<AuthResponse> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        token: "dummy-jwt-token-123",
+        user: {
+          id: "u123",
+          email,
+          username: email.split("@")[0],
+        },
+      });
+    }, 1000);
+  });
+};`;
+
+const m6t1LoginFormSkeleton = `import { type FormEvent, useState } from "react";
+// TODO: Import 'loginRequest' from "../../api/auth"
+
+export default function LoginForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
 
-    if (!values.email.trim() || !values.password.trim()) {
+    if (!email.trim() || !password.trim()) {
       setError("Email and password are required.");
       return;
     }
 
-    await onSubmit(values);
+    setIsLoading(true);
+    try {
+      // TODO: Call loginRequest(email, password) and log the response to the console.
+    } catch (err) {
+      setError("Failed to login");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -636,8 +657,8 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
           id="email"
           type="email"
           autoComplete="email"
-          value={values.email}
-          onChange={(event) => setValues((current) => ({ ...current, email: event.target.value }))}
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
           className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-brand-500"
           placeholder="you@example.com"
         />
@@ -645,7 +666,7 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
 
       {/* TODO: Add the password input following the email pattern above.
           Use id="password", type="password", autoComplete="current-password",
-          bind value to values.password, update on change, placeholder="Enter your password". */}
+          bind value to password, update on change, placeholder="Enter your password". */}
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
@@ -658,34 +679,32 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
 }`;
 
 const m6t1LoginFormSolution = `import { type FormEvent, useState } from "react";
+import { loginRequest } from "../../api/auth";
 
-export interface LoginFormValues {
-  email: string;
-  password: string;
-}
-
-interface LoginFormProps {
-  onSubmit: (values: LoginFormValues) => Promise<void> | void;
-  isLoading?: boolean;
-}
-
-export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
-  const [values, setValues] = useState<LoginFormValues>({
-    email: "",
-    password: "",
-  });
+export default function LoginForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
 
-    if (!values.email.trim() || !values.password.trim()) {
+    if (!email.trim() || !password.trim()) {
       setError("Email and password are required.");
       return;
     }
 
-    await onSubmit(values);
+    setIsLoading(true);
+    try {
+      const response = await loginRequest(email, password);
+      console.log("Logged in!", response);
+    } catch (err) {
+      setError("Failed to login");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -698,8 +717,8 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
           id="email"
           type="email"
           autoComplete="email"
-          value={values.email}
-          onChange={(event) => setValues((current) => ({ ...current, email: event.target.value }))}
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
           className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-brand-500"
           placeholder="you@example.com"
         />
@@ -713,8 +732,8 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
           id="password"
           type="password"
           autoComplete="current-password"
-          value={values.password}
-          onChange={(event) => setValues((current) => ({ ...current, password: event.target.value }))}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
           className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-brand-500"
           placeholder="Enter your password"
         />
@@ -912,6 +931,11 @@ const twitterCloneProject: SeedProject = {
           concepts: "React Router, Route, path parameters, Navigate redirect",
           files: [
             {
+              path: "src/pages/index.ts",
+              skeleton: m1t1PagesIndexSkeleton,
+              solution: m1t1PagesIndexSolution,
+            },
+            {
               path: "src/App.tsx",
               skeleton: m1t1AppSkeleton,
               solution: m1t1AppSolution,
@@ -1063,16 +1087,21 @@ const twitterCloneProject: SeedProject = {
         {
           title: "Map the tweets array into TweetCard components",
           description:
-            "The mock data, state management, and loading UI are all provided. Your job is to render the tweet list.",
+            "The loading UI is provided. Your job is to import the mock data and render the tweet list.",
           order: 1,
           instructions:
-            "The useEffect already fetches mockTweets into the tweets state, and the loading state is handled. Inside the <section>, map over the tweets array and render a <TweetCard /> for each tweet. Pass tweet.id as the key prop and spread the entire tweet object as props using {...tweet}.",
+            "1) Inside utils/mockData.ts, add another mock tweet to the array.\n2) In MainFeed.tsx, import mockTweets from '../../../utils/mockData'.\n3) Inside the useEffect, uncomment setTweets(mockTweets) to populate the state.\n4) Inside the <section>, map over the tweets array and render a <TweetCard /> for each tweet using {...tweet}.",
           difficulty: "Beginner",
           skillCategory: "Frontend",
           skillPoints: 14,
           concepts:
             "List rendering, key prop, spread props, useEffect lifecycle, loading states",
           files: [
+            {
+              path: "src/utils/mockData.ts",
+              skeleton: m4t1MockDataSkeleton,
+              solution: m4t1MockDataSolution,
+            },
             {
               path: "src/features/feed/components/MainFeed.tsx",
               skeleton: m4t1MainFeedSkeleton,
@@ -1212,18 +1241,23 @@ const twitterCloneProject: SeedProject = {
       order: 6,
       tasks: [
         {
-          title: "Add the password input and submit button to LoginForm",
+          title: "Build the auth API and LoginForm UI",
           description:
-            "The form structure, state management, validation, and email input are provided. Follow the email pattern to add the remaining fields.",
+            "Create a mock authentication service and wire it into the login form interface.",
           order: 1,
           instructions:
-            "The email input is already fully implemented as your reference. Add a password input field following the same pattern (wrapped in a <div> with a <label> and <input>), using type='password' and binding to values.password. Then add a submit <button> that shows 'Signing in...' when isLoading is true and 'Sign in' otherwise.",
+            "1) In api/auth.ts, call resolve() with the dummy AuthResponse object returning the token and user details.\n2) In LoginForm.tsx, import loginRequest, implement the password input following the email pattern, and render the submit button. Finally, call loginRequest inside handleSubmit.",
           difficulty: "Beginner",
           skillCategory: "Frontend",
           skillPoints: 14,
           concepts:
-            "Controlled inputs, form patterns, submit state, disabled state, template duplication",
+            "Mock APIs, controlled inputs, form submission, promises, template duplication",
           files: [
+            {
+              path: "src/api/auth.ts",
+              skeleton: m6t1AuthApiSkeleton,
+              solution: m6t1AuthApiSolution,
+            },
             {
               path: "src/features/auth/components/LoginForm.tsx",
               skeleton: m6t1LoginFormSkeleton,

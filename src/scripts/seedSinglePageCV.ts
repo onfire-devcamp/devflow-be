@@ -173,14 +173,14 @@ export default function App() {
 // Module 2 — Experience & Education
 // ═══════════════════════════════════════════════════════════════════════════
 
-const m2t1SectionItemSkeleton = `export interface SectionItemProps {
+const m2t1ExperienceItemSkeleton = `export interface ExperienceItemProps {
   title: string;
   subtitle: string;
   period: string;
   description: string;
 }
 
-export default function SectionItem({ title, subtitle, period, description }: SectionItemProps) {
+export default function ExperienceItem({ title, subtitle, period, description }: ExperienceItemProps) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:gap-6">
       {/* The left column with the period is provided */}
@@ -201,14 +201,14 @@ export default function SectionItem({ title, subtitle, period, description }: Se
   );
 }`;
 
-const m2t1SectionItemSolution = `export interface SectionItemProps {
+const m2t1ExperienceItemSolution = `export interface ExperienceItemProps {
   title: string;
   subtitle: string;
   period: string;
   description: string;
 }
 
-export default function SectionItem({ title, subtitle, period, description }: SectionItemProps) {
+export default function ExperienceItem({ title, subtitle, period, description }: ExperienceItemProps) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:gap-6">
       <div className="w-full shrink-0 text-sm font-medium text-slate-500 sm:w-32 sm:text-right">
@@ -225,7 +225,7 @@ export default function SectionItem({ title, subtitle, period, description }: Se
   );
 }`;
 
-const m2t2ResumeBodySkeleton = `import SectionItem from "./SectionItem";
+const m2t1ExperienceListSkeleton = `import ExperienceItem from "./ExperienceItem";
 
 const experienceData = [
   {
@@ -235,43 +235,28 @@ const experienceData = [
     period: "2021 - Present",
     description: "Lead the frontend team in building a modern React application. Migrated legacy codebase to TypeScript and improved performance by 40%.",
   },
-];
-
-const educationData = [
   {
-    id: "edu1",
-    title: "B.S. Computer Science",
-    subtitle: "State University",
-    period: "2017 - 2021",
-    description: "Graduated with Honors. Specialized in Human-Computer Interaction and web technologies.",
-  },
+    id: "exp2",
+    title: "Web Developer",
+    subtitle: "Creative Agency",
+    period: "2019 - 2021",
+    description: "Developed responsive websites for clients. Worked closely with designers to implement pixel-perfect UIs.",
+  }
 ];
 
-export default function ResumeBody() {
+export default function ExperienceList() {
   return (
-    <div className="space-y-12">
-      <section>
-        <h2 className="mb-6 text-xl font-bold tracking-tight text-slate-900">Experience</h2>
-        <div className="space-y-8">
-          {/* Experience mapping is provided for you */}
-          {experienceData.map((item) => (
-            <SectionItem key={item.id} {...item} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-6 text-xl font-bold tracking-tight text-slate-900">Education</h2>
-        <div className="space-y-8">
-          {/* TODO: Follow the pattern above to map over educationData.
-              Render a <SectionItem /> for each item, passing the key and spreading the props. */}
-        </div>
-      </section>
-    </div>
+    <section>
+      <h2 className="mb-6 text-xl font-bold tracking-tight text-slate-900">Experience</h2>
+      <div className="space-y-8">
+        {/* TODO: Map over experienceData.
+            Render an <ExperienceItem /> for each item, passing the key={item.id} and spreading the props {...item}. */}
+      </div>
+    </section>
   );
 }`;
 
-const m2t2ResumeBodySolution = `import SectionItem from "./SectionItem";
+const m2t1ExperienceListSolution = `import ExperienceItem from "./ExperienceItem";
 
 const experienceData = [
   {
@@ -281,47 +266,33 @@ const experienceData = [
     period: "2021 - Present",
     description: "Lead the frontend team in building a modern React application. Migrated legacy codebase to TypeScript and improved performance by 40%.",
   },
-];
-
-const educationData = [
   {
-    id: "edu1",
-    title: "B.S. Computer Science",
-    subtitle: "State University",
-    period: "2017 - 2021",
-    description: "Graduated with Honors. Specialized in Human-Computer Interaction and web technologies.",
-  },
+    id: "exp2",
+    title: "Web Developer",
+    subtitle: "Creative Agency",
+    period: "2019 - 2021",
+    description: "Developed responsive websites for clients. Worked closely with designers to implement pixel-perfect UIs.",
+  }
 ];
 
-export default function ResumeBody() {
+export default function ExperienceList() {
   return (
-    <div className="space-y-12">
-      <section>
-        <h2 className="mb-6 text-xl font-bold tracking-tight text-slate-900">Experience</h2>
-        <div className="space-y-8">
-          {experienceData.map((item) => (
-            <SectionItem key={item.id} {...item} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-6 text-xl font-bold tracking-tight text-slate-900">Education</h2>
-        <div className="space-y-8">
-          {educationData.map((item) => (
-            <SectionItem key={item.id} {...item} />
-          ))}
-        </div>
-      </section>
-    </div>
+    <section>
+      <h2 className="mb-6 text-xl font-bold tracking-tight text-slate-900">Experience</h2>
+      <div className="space-y-8">
+        {experienceData.map((item) => (
+          <ExperienceItem key={item.id} {...item} />
+        ))}
+      </div>
+    </section>
   );
 }`;
 
-// M2T3 Chains App.tsx (MUST EQUAL m1t2AppSolution)
-const m2t3AppSkeleton = m1t2AppSolution;
+// M2T2 Chains App.tsx (MUST EQUAL m1t2AppSolution)
+const m2t2AppSkeleton = m1t2AppSolution;
 
-const m2t3AppSolution = `import Header from "./components/Header";
-import ResumeBody from "./components/ResumeBody";
+const m2t2AppSolution = `import Header from "./components/Header";
+import ExperienceList from "./components/ExperienceList";
 
 export default function App() {
   return (
@@ -330,7 +301,7 @@ export default function App() {
         <Header />
         
         <main className="mt-8 space-y-12">
-          <ResumeBody />
+          <ExperienceList />
         </main>
       </div>
     </div>
@@ -341,8 +312,18 @@ export default function App() {
 // Module 3 — Skills & Polish
 // ═══════════════════════════════════════════════════════════════════════════
 
-const m3t1SkillTagsSkeleton = `const frontendSkills = ["React", "TypeScript", "Tailwind CSS", "Next.js"];
-const backendSkills = ["Node.js", "Express", "PostgreSQL", "Redis"];
+const m3t1MockDataSkeleton = `export const frontendSkills = ["React", "TypeScript", "Tailwind CSS", "Next.js"];
+
+// TODO: Export a backendSkills array containing ["Node.js", "Express", "PostgreSQL", "Redis"]
+`;
+
+const m3t1MockDataSolution = `export const frontendSkills = ["React", "TypeScript", "Tailwind CSS", "Next.js"];
+
+export const backendSkills = ["Node.js", "Express", "PostgreSQL", "Redis"];
+`;
+
+const m3t1SkillTagsSkeleton = `import { frontendSkills } from "../data/mockData";
+// TODO: Import backendSkills from "../data/mockData"
 
 export default function SkillTags() {
   return (
@@ -374,8 +355,7 @@ export default function SkillTags() {
   );
 }`;
 
-const m3t1SkillTagsSolution = `const frontendSkills = ["React", "TypeScript", "Tailwind CSS", "Next.js"];
-const backendSkills = ["Node.js", "Express", "PostgreSQL", "Redis"];
+const m3t1SkillTagsSolution = `import { frontendSkills, backendSkills } from "../data/mockData";
 
 export default function SkillTags() {
   return (
@@ -409,54 +389,24 @@ export default function SkillTags() {
   );
 }`;
 
-// M3T2 Chains ResumeBody.tsx (MUST EQUAL m2t2ResumeBodySolution)
-const m3t2ResumeBodySkeleton = m2t2ResumeBodySolution;
+// M3T2 Chains App.tsx (MUST EQUAL m2t2AppSolution)
+const m3t2AppSkeleton = m2t2AppSolution;
 
-const m3t2ResumeBodySolution = `import SectionItem from "./SectionItem";
-import SkillTags from "./SkillTags";
+const m3t2AppSolution = `import Header from "./components/Header";
+import ExperienceList from "./components/ExperienceList";
+import SkillTags from "./components/SkillTags";
 
-const experienceData = [
-  {
-    id: "exp1",
-    title: "Senior Frontend Engineer",
-    subtitle: "TechStart Inc.",
-    period: "2021 - Present",
-    description: "Lead the frontend team in building a modern React application. Migrated legacy codebase to TypeScript and improved performance by 40%.",
-  },
-];
-
-const educationData = [
-  {
-    id: "edu1",
-    title: "B.S. Computer Science",
-    subtitle: "State University",
-    period: "2017 - 2021",
-    description: "Graduated with Honors. Specialized in Human-Computer Interaction and web technologies.",
-  },
-];
-
-export default function ResumeBody() {
+export default function App() {
   return (
-    <div className="space-y-12">
-      <section>
-        <h2 className="mb-6 text-xl font-bold tracking-tight text-slate-900">Experience</h2>
-        <div className="space-y-8">
-          {experienceData.map((item) => (
-            <SectionItem key={item.id} {...item} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-6 text-xl font-bold tracking-tight text-slate-900">Education</h2>
-        <div className="space-y-8">
-          {educationData.map((item) => (
-            <SectionItem key={item.id} {...item} />
-          ))}
-        </div>
-      </section>
-
-      <SkillTags />
+    <div className="min-h-screen bg-slate-50 p-4 py-12 font-sans sm:p-8">
+      <div className="mx-auto max-w-3xl rounded-2xl bg-white p-8 shadow-sm sm:p-12">
+        <Header />
+        
+        <main className="mt-8 space-y-12">
+          <ExperienceList />
+          <SkillTags />
+        </main>
+      </div>
     </div>
   );
 }`;
@@ -603,32 +553,37 @@ const singlePageCvProject: SeedProject = {
       ],
     },
     {
-      title: "Experience & Education",
+      title: "Experience Section",
       description:
-        "Build reusable components to render dynamic lists of professional experience and education.",
+        "Build reusable components to render dynamic lists of professional experience.",
       order: 2,
       tasks: [
         {
-          title: "Build the SectionItem component",
+          title: "Build the ExperienceItem and ExperienceList components",
           description:
-            "Create a reusable component for displaying a single job or degree.",
+            "Create a parent list component and a child item component, then map over data.",
           order: 1,
           instructions:
-            "SectionItem receives props for a timeline item. The period, title, and subtitle are implemented. Add a <p> tag to render the description prop using the classes provided.",
+            "1) In ExperienceItem.tsx, render the description prop in a <p> tag using the provided classes.\n2) In ExperienceList.tsx, map over the experienceData array and render an <ExperienceItem /> for each item.",
           difficulty: "Beginner",
           skillCategory: "Frontend",
           skillPoints: 12,
-          concepts: "React Props, Component Reusability",
+          concepts: "React Props, Component Reusability, Array Mapping",
           files: [
             {
-              path: "src/components/SectionItem.tsx",
-              skeleton: m2t1SectionItemSkeleton,
-              solution: m2t1SectionItemSolution,
+              path: "src/components/ExperienceItem.tsx",
+              skeleton: m2t1ExperienceItemSkeleton,
+              solution: m2t1ExperienceItemSolution,
+            },
+            {
+              path: "src/components/ExperienceList.tsx",
+              skeleton: m2t1ExperienceListSkeleton,
+              solution: m2t1ExperienceListSolution,
             },
           ],
           mcq: {
             question:
-              "How does React know which data to display in the {description} block?",
+              "How does React know which data to display in the {description} block of ExperienceItem?",
             options: [
               {
                 id: "a",
@@ -651,54 +606,11 @@ const singlePageCvProject: SeedProject = {
           },
         },
         {
-          title: "Map the Education data in ResumeBody",
-          description:
-            "Render lists of data by mapping over an array and returning React components.",
+          title: "Render ExperienceList inside App",
+          description: "Bring the experience section into the main layout.",
           order: 2,
           instructions:
-            "The experience section successfully maps over 'experienceData' to render <SectionItem /> components. Follow this exact pattern to map over 'educationData' in the Education section.",
-          difficulty: "Beginner",
-          skillCategory: "Frontend",
-          skillPoints: 15,
-          concepts: "Array.map(), React Keys, Data-Driven UI",
-          files: [
-            {
-              path: "src/components/ResumeBody.tsx",
-              skeleton: m2t2ResumeBodySkeleton,
-              solution: m2t2ResumeBodySolution,
-            },
-          ],
-          mcq: {
-            question:
-              "When mapping over an array in React, why is the 'key' prop required?",
-            options: [
-              {
-                id: "a",
-                text: "It helps React identify which items have changed, been added, or removed, enabling efficient DOM updates.",
-              },
-              {
-                id: "b",
-                text: "It is used as a CSS id selector to style individual elements.",
-              },
-              {
-                id: "c",
-                text: "It encrypts the data before it is rendered to the screen.",
-              },
-              {
-                id: "d",
-                text: "It automatically sorts the array alphabetically before rendering.",
-              },
-            ],
-            correctAnswer: "a",
-          },
-        },
-        {
-          title: "Render ResumeBody inside App",
-          description:
-            "Bring the experience and education sections into the main layout.",
-          order: 3,
-          instructions:
-            "Import ResumeBody from './components/ResumeBody' and render it inside the empty <main> tag you created in Module 1.",
+            "Import ExperienceList from './components/ExperienceList' and render it inside the empty <main> tag you created in Module 1.",
           difficulty: "Beginner",
           skillCategory: "Frontend",
           skillPoints: 10,
@@ -706,13 +618,13 @@ const singlePageCvProject: SeedProject = {
           files: [
             {
               path: "src/App.tsx",
-              skeleton: m2t3AppSkeleton,
-              solution: m2t3AppSolution,
+              skeleton: m2t2AppSkeleton,
+              solution: m2t2AppSolution,
             },
           ],
           mcq: {
             question:
-              "What happens if you forget to import ResumeBody before trying to use it in App.tsx?",
+              "What happens if you forget to import ExperienceList before trying to use it in App.tsx?",
             options: [
               {
                 id: "a",
@@ -724,11 +636,11 @@ const singlePageCvProject: SeedProject = {
               },
               {
                 id: "c",
-                text: "The app will run, but the ResumeBody area will just appear blank.",
+                text: "The app will run, but the area will just appear blank.",
               },
               {
                 id: "d",
-                text: "The browser will render it as a standard HTML tag named <resumebody>.",
+                text: "The browser will render it as a standard HTML tag named <experiencelist>.",
               },
             ],
             correctAnswer: "a",
@@ -739,21 +651,26 @@ const singlePageCvProject: SeedProject = {
     {
       title: "Skills & Polish",
       description:
-        "Finalize the CV by adding styled skill badges using Flexbox wrapping.",
+        "Finalize the CV by extracting data and adding styled skill badges using Flexbox wrapping.",
       order: 3,
       tasks: [
         {
-          title: "Render backend skill badges",
+          title: "Extract mock data and render backend skill badges",
           description:
-            "Use array mapping to generate a flexible grid of skill tags.",
+            "Move data to a dedicated file and generate a flexible grid of skill tags.",
           order: 1,
           instructions:
-            "The frontend skills have been mapped into stylish badges. Follow the exact same pattern to map over the 'backendSkills' array in the second section.",
+            "1) In data/mockData.ts, export a backendSkills array containing the suggested skills.\n2) In SkillTags.tsx, import backendSkills from the data file.\n3) Following the frontend pattern, map over backendSkills to render a <span> for each.",
           difficulty: "Beginner",
           skillCategory: "Frontend",
-          skillPoints: 10,
-          concepts: "Flex wrap, badge styling, array mapping",
+          skillPoints: 14,
+          concepts: "Flex wrap, data extraction, array mapping, imports",
           files: [
+            {
+              path: "src/data/mockData.ts",
+              skeleton: m3t1MockDataSkeleton,
+              solution: m3t1MockDataSolution,
+            },
             {
               path: "src/components/SkillTags.tsx",
               skeleton: m3t1SkillTagsSkeleton,
@@ -762,23 +679,23 @@ const singlePageCvProject: SeedProject = {
           ],
           mcq: {
             question:
-              "What does the Tailwind 'flex-wrap' utility do in the skills container?",
+              "Why is it a good practice to extract static data arrays (like skills) into a separate data file?",
             options: [
               {
                 id: "a",
-                text: "It allows the skill badges to wrap onto a new line if they run out of horizontal space in the container.",
+                text: "It keeps the component files smaller and focuses them strictly on UI rendering logic.",
               },
               {
                 id: "b",
-                text: "It forces all items to shrink until they fit on a single line.",
+                text: "It makes the React components render faster.",
               },
               {
                 id: "c",
-                text: "It creates a CSS Grid layout instead of a Flexbox layout.",
+                text: "It is required by TypeScript in order to infer types correctly.",
               },
               {
                 id: "d",
-                text: "It hides any items that overflow the container's width.",
+                text: "It allows the browser to cache the data separately from the JavaScript bundle.",
               },
             ],
             correctAnswer: "a",
@@ -790,16 +707,16 @@ const singlePageCvProject: SeedProject = {
             "Complete the CV by inserting the Skills component at the bottom of the body.",
           order: 2,
           instructions:
-            "Import SkillTags and render it as the last child inside the ResumeBody container.",
+            "Import SkillTags and render it as the last child inside the <main> tag in App.tsx.",
           difficulty: "Beginner",
           skillCategory: "Frontend",
           skillPoints: 10,
           concepts: "Component Composition",
           files: [
             {
-              path: "src/components/ResumeBody.tsx",
-              skeleton: m3t2ResumeBodySkeleton,
-              solution: m3t2ResumeBodySolution,
+              path: "src/App.tsx",
+              skeleton: m3t2AppSkeleton,
+              solution: m3t2AppSolution,
             },
           ],
           mcq: {

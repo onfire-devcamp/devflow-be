@@ -67,7 +67,7 @@ export const connectDB = async () => {
     content: `import express from "express";
 import cors from "cors";
 import { connectDB } from "./config/db.js";
-import { shortenUrl, redirectUrl } from "./controllers/urlController.js";
+import urlRoutes from "./routes/urlRoutes.js";
 
 const app = express();
 
@@ -75,8 +75,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.post("/shorten", shortenUrl);
-app.get("/:code", redirectUrl);
+app.use("/", urlRoutes);
 
 const PORT = process.env.PORT || 3000;
 
@@ -92,7 +91,22 @@ connectDB().then(() => {
 // Module 1 — Data Layer
 // ═══════════════════════════════════════════════════════════════════════════
 
+const m1t1ValidationSkeleton = `// TODO: Export a function called isValidUrl(url: string) returning boolean.
+// Inside it, try to parse the URL using new URL(url). If it throws an error, return false.
+// Otherwise, return true if the protocol is 'http:' or 'https:', else false.
+`;
+
+const m1t1ValidationSolution = `export function isValidUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch (err) {
+    return false;
+  }
+}`;
+
 const m1t1UrlModelSkeleton = `import mongoose, { Document, Schema } from 'mongoose';
+// TODO: Import isValidUrl from '../utils/validation'
 
 export interface IUrl extends Document {
   originalUrl: string;
@@ -102,7 +116,7 @@ export interface IUrl extends Document {
 }
 
 // TODO: Create the urlSchema using mongoose.Schema.
-// It should have 'originalUrl' (String, required),
+// It should have 'originalUrl' (String, required, and validate using isValidUrl),
 // 'shortCode' (String, required, unique),
 // and 'clicks' (Number, default to 0).
 const urlSchema = new Schema({
@@ -112,6 +126,7 @@ const urlSchema = new Schema({
 export const Url = mongoose.model<IUrl>('Url', urlSchema);`;
 
 const m1t1UrlModelSolution = `import mongoose, { Document, Schema } from 'mongoose';
+import { isValidUrl } from '../utils/validation';
 
 export interface IUrl extends Document {
   originalUrl: string;
@@ -121,7 +136,14 @@ export interface IUrl extends Document {
 }
 
 const urlSchema = new Schema({
-  originalUrl: { type: String, required: true },
+  originalUrl: { 
+    type: String, 
+    required: true,
+    validate: {
+      validator: isValidUrl,
+      message: "Invalid URL format"
+    }
+  },
   shortCode: { type: String, required: true, unique: true },
   clicks: { type: Number, default: 0 }
 }, { timestamps: true });
@@ -213,6 +235,25 @@ export const redirectUrl = async (req: Request, res: Response): Promise<void> =>
   // TODO (Module 4): Find the url by shortCode, increment clicks, and redirect.
 };`;
 
+const m3t1UrlRoutesSkeleton = `import { Router } from "express";
+import { shortenUrl } from "../controllers/urlController";
+
+const router = Router();
+
+// TODO: Create a POST route on '/shorten' that calls shortenUrl
+// router.post('/shorten', ...);
+
+export default router;`;
+
+const m3t1UrlRoutesSolution = `import { Router } from "express";
+import { shortenUrl } from "../controllers/urlController";
+
+const router = Router();
+
+router.post("/shorten", shortenUrl);
+
+export default router;`;
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Module 4 — Redirect Endpoint
 // ═══════════════════════════════════════════════════════════════════════════
@@ -261,12 +302,25 @@ export const redirectUrl = async (req: Request, res: Response): Promise<void> =>
   res.redirect(urlDoc.originalUrl);
 };`;
 
+// M4T1 Routes Chain
+const m4t1UrlRoutesSkeleton = m3t1UrlRoutesSolution;
+
+const m4t1UrlRoutesSolution = `import { Router } from "express";
+import { shortenUrl, redirectUrl } from "../controllers/urlController";
+
+const router = Router();
+
+router.post("/shorten", shortenUrl);
+router.get("/:code", redirectUrl);
+
+export default router;`;
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Full Project Seed
 // ═══════════════════════════════════════════════════════════════════════════
 
 const urlShortenerProject: SeedProject = {
-  title: "Build a Scalable URL Shortener API",
+  title: "Build a Scalable URL Shortener Service",
   slug: "url-shortener-api",
   description:
     "Learn core backend concepts by building an Express API that generates short URLs, handles redirects, and tracks click analytics.",
@@ -320,17 +374,22 @@ const urlShortenerProject: SeedProject = {
       order: 1,
       tasks: [
         {
-          title: "Implement the Url Schema",
+          title: "Implement the Url Schema and Validation",
           description:
-            "Define the Mongoose schema enforcing required fields and uniqueness.",
+            "Define the Mongoose schema enforcing required fields and custom URL validation.",
           order: 1,
           instructions:
-            "Complete the urlSchema configuration block. Add 'originalUrl' as a required String, 'shortCode' as a required and unique String, and 'clicks' as a Number that defaults to 0.",
+            "1) In utils/validation.ts, implement the isValidUrl utility using the new URL() constructor.\n2) In urlModel.ts, complete the urlSchema configuration block. Add 'originalUrl' with a custom validator using isValidUrl. Add 'shortCode' as a required and unique String, and 'clicks' as a Number that defaults to 0.",
           difficulty: "Beginner",
           skillCategory: "Backend",
           skillPoints: 10,
-          concepts: "Mongoose Schema, Data Modeling, Database Indexes",
+          concepts: "Mongoose Schema, Data Modeling, Custom Validation",
           files: [
+            {
+              path: "src/utils/validation.ts",
+              skeleton: m1t1ValidationSkeleton,
+              solution: m1t1ValidationSolution,
+            },
             {
               path: "src/models/urlModel.ts",
               skeleton: m1t1UrlModelSkeleton,
@@ -420,21 +479,26 @@ const urlShortenerProject: SeedProject = {
       order: 3,
       tasks: [
         {
-          title: "Implement the shortenUrl controller",
+          title: "Implement the shortenUrl endpoint",
           description:
-            "Tie the service and data layer together in an Express request handler.",
+            "Tie the service and data layer together in an Express request handler and wire it to the router.",
           order: 1,
           instructions:
-            "We've already extracted the 'originalUrl' from req.body. Call generateShortCode() to get a short string. Use Url.create() to save the originalUrl and shortCode. Finally, respond with status 201 and the new url JSON object.",
+            "1) In urlController.ts, call generateShortCode() to get a short string. Use Url.create() to save the originalUrl and shortCode, then respond with status 201.\n2) In urlRoutes.ts, register a POST route on '/shorten' that calls shortenUrl.",
           difficulty: "Intermediate",
           skillCategory: "Backend",
           skillPoints: 15,
-          concepts: "Express POST Requests, DB Writes, JSON Responses",
+          concepts: "Express POST Requests, DB Writes, JSON Responses, Routing",
           files: [
             {
               path: "src/controllers/urlController.ts",
               skeleton: m3t1UrlControllerSkeleton,
               solution: m3t1UrlControllerSolution,
+            },
+            {
+              path: "src/routes/urlRoutes.ts",
+              skeleton: m3t1UrlRoutesSkeleton,
+              solution: m3t1UrlRoutesSolution,
             },
           ],
           mcq: {
@@ -458,12 +522,12 @@ const urlShortenerProject: SeedProject = {
       order: 4,
       tasks: [
         {
-          title: "Implement the redirectUrl controller",
+          title: "Implement the redirectUrl endpoint",
           description:
             "Read from the database, track the click, and send an HTTP redirect.",
           order: 1,
           instructions:
-            "The 'code' is extracted from req.params. Use Url.findOneAndUpdate() to find the document with 'shortCode: code' and increment the 'clicks' by 1 using {$inc}. If not found, return a 404. Otherwise, execute res.redirect() using the originalUrl.",
+            "1) In urlController.ts, use Url.findOneAndUpdate() to find the document with 'shortCode: code' and increment the 'clicks' by 1 using {$inc}. If found, execute res.redirect() using the originalUrl.\n2) In urlRoutes.ts, import redirectUrl and add a GET route on '/:code'.",
           difficulty: "Intermediate",
           skillCategory: "Backend",
           skillPoints: 15,
@@ -473,6 +537,11 @@ const urlShortenerProject: SeedProject = {
               path: "src/controllers/urlController.ts",
               skeleton: m4t1UrlControllerSkeleton,
               solution: m4t1UrlControllerSolution,
+            },
+            {
+              path: "src/routes/urlRoutes.ts",
+              skeleton: m4t1UrlRoutesSkeleton,
+              solution: m4t1UrlRoutesSolution,
             },
           ],
           mcq: {

@@ -52,6 +52,7 @@ export interface TaskView {
   };
   skillCategory: SkillCategory;
   skillPoints: number;
+  aiScore?: number;
   status?: TaskRoadmapStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -80,6 +81,7 @@ export interface ProjectSummaryView {
   progressPercentage?: number;
   moduleCount?: number;
   estimatedHours?: number;
+  isInitialized?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
