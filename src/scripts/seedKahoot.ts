@@ -162,15 +162,25 @@ export const mockQuestions: Question[] = [
 // Module 1 — Global Quiz State
 // ═══════════════════════════════════════════════════════════════════════════
 
-const m1t1QuizStoreSkeleton = `import { create } from "zustand";
+const m1t1QuizTypesSkeleton = `export interface QuizState {
+  score: number;
+  currentQuestionIndex: number;
+  isGameOver: boolean;
+  // TODO: Add answerQuestion action signature. It takes a boolean isCorrect and a number totalQuestions, returning void.
+  
+  resetGame: () => void;
+}`;
 
-interface QuizState {
+const m1t1QuizTypesSolution = `export interface QuizState {
   score: number;
   currentQuestionIndex: number;
   isGameOver: boolean;
   answerQuestion: (isCorrect: boolean, totalQuestions: number) => void;
   resetGame: () => void;
-}
+}`;
+
+const m1t1QuizStoreSkeleton = `import { create } from "zustand";
+import type { QuizState } from "../types/quiz";
 
 export const useQuizStore = create<QuizState>((set) => ({
   score: 0,
@@ -195,14 +205,7 @@ export const useQuizStore = create<QuizState>((set) => ({
 }));`;
 
 const m1t1QuizStoreSolution = `import { create } from "zustand";
-
-interface QuizState {
-  score: number;
-  currentQuestionIndex: number;
-  isGameOver: boolean;
-  answerQuestion: (isCorrect: boolean, totalQuestions: number) => void;
-  resetGame: () => void;
-}
+import type { QuizState } from "../types/quiz";
 
 export const useQuizStore = create<QuizState>((set) => ({
   score: 0,
@@ -533,17 +536,22 @@ const kahootProject: SeedProject = {
       order: 1,
       tasks: [
         {
-          title: "Implement the answerQuestion store action",
+          title: "Define types and implement the store",
           description:
-            "Update the score and index when a user answers a question.",
+            "Define the TypeScript interfaces in the types file and implement the Zustand logic in the store.",
           order: 1,
           instructions:
-            "The Zustand store is initialized. Complete the answerQuestion action to increment the score if isCorrect is true, increment the currentQuestionIndex, and set isGameOver to true if the new index has reached the totalQuestions limit.",
+            "1) In types/quiz.ts, add the answerQuestion action signature.\n2) In useQuizStore.ts, complete the answerQuestion action to increment the score if isCorrect is true, increment the currentQuestionIndex, and set isGameOver to true if the new index has reached the totalQuestions limit.",
           difficulty: "Intermediate",
           skillCategory: "Frontend",
-          skillPoints: 12,
-          concepts: "Zustand, Global State, State Transitions",
+          skillPoints: 14,
+          concepts: "Zustand, Global State, TypeScript Interfaces",
           files: [
+            {
+              path: "src/types/quiz.ts",
+              skeleton: m1t1QuizTypesSkeleton,
+              solution: m1t1QuizTypesSolution,
+            },
             {
               path: "src/stores/useQuizStore.ts",
               skeleton: m1t1QuizStoreSkeleton,
@@ -717,58 +725,22 @@ const kahootProject: SeedProject = {
       order: 4,
       tasks: [
         {
-          title: "Add a Play Again button to ScoreScreen",
-          description: "Wire up the reset functionality to start a new game.",
+          title: "Build ScoreScreen and implement the Game Loop",
+          description:
+            "Build the final score UI and wire the conditional rendering into the App root.",
           order: 1,
           instructions:
-            "The resetGame action is already pulled from the Zustand store. Add a <button> that says 'Play Again' and attach resetGame to its onClick handler.",
-          difficulty: "Beginner",
+            "1) In ScoreScreen.tsx, add a 'Play Again' <button> and attach resetGame to its onClick handler.\n2) In App.tsx, conditionally render <ScoreScreen /> if isGameOver is true, otherwise render <QuestionCard />. CRITICAL: pass 'key={currentQuestionIndex}' to QuestionCard so the timer resets!",
+          difficulty: "Intermediate",
           skillCategory: "Frontend",
-          skillPoints: 8,
-          concepts: "onClick handlers, Component layout",
+          skillPoints: 14,
+          concepts: "Conditional Rendering, React Keys, State Flow",
           files: [
             {
               path: "src/components/ScoreScreen.tsx",
               skeleton: m4t1ScoreScreenSkeleton,
               solution: m4t1ScoreScreenSolution,
             },
-          ],
-          mcq: {
-            question:
-              "When resetGame is called, why does the screen automatically switch back to the first question?",
-            options: [
-              {
-                id: "a",
-                text: "Because resetGame updates isGameOver to false and currentQuestionIndex to 0 in the Zustand store, causing App.tsx to re-render the QuestionCard.",
-              },
-              {
-                id: "b",
-                text: "Because resetGame forces the browser to refresh the page.",
-              },
-              {
-                id: "c",
-                text: "Because resetGame sends a network request to the backend to start a new session.",
-              },
-              {
-                id: "d",
-                text: "Because the button has a type='submit' attribute.",
-              },
-            ],
-            correctAnswer: "a",
-          },
-        },
-        {
-          title: "Implement the Game Loop in App",
-          description:
-            "Conditionally render components based on the Zustand game state.",
-          order: 2,
-          instructions:
-            "Use a ternary operator to conditionally render the <ScoreScreen /> if isGameOver is true, or the <QuestionCard /> otherwise. Remember to pass 'key={currentQuestionIndex}' to the QuestionCard so its internal timer resets!",
-          difficulty: "Intermediate",
-          skillCategory: "Frontend",
-          skillPoints: 12,
-          concepts: "Conditional Rendering, React Keys, State Flow",
-          files: [
             {
               path: "src/App.tsx",
               skeleton: m4t2AppSkeleton,
