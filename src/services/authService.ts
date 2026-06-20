@@ -22,6 +22,10 @@ export interface AuthResult extends TokenPair {
     id: Types.ObjectId;
     username: string;
     email: string;
+    avatarUrl?: string;
+    bio?: string;
+    workplace?: string;
+    socialLinks?: Array<{ platform: string; url: string }>;
   };
 }
 
@@ -86,7 +90,9 @@ export const rotateRefreshToken = async (
   await RefreshToken.findByIdAndUpdate(storedToken._id, { isRevoked: true });
 
   // 6. Fetch user to include in response
-  const user = await User.findById(userId).select("email username");
+  const user = await User.findById(userId).select(
+    "email username avatarUrl bio workplace socialLinks",
+  );
   if (!user) throw new AuthenticationError("User account no longer exists.");
 
   // 7. Issue a fresh pair in the same family
@@ -103,6 +109,10 @@ export const rotateRefreshToken = async (
       id: user._id as Types.ObjectId,
       username: user.username,
       email: user.email,
+      avatarUrl: user.avatarUrl,
+      bio: user.bio,
+      workplace: user.workplace,
+      socialLinks: user.socialLinks,
     },
   };
 };
