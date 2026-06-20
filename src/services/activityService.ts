@@ -16,7 +16,11 @@ export const getRecentActivitiesByUser = async (
     MAX_LIMIT,
   );
 
-  return Activity.find({ userId }).sort({ createdAt: -1 }).limit(limit).lean();
+  return Activity.find({ userId })
+    .populate("projectId", "title slug")
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean();
 };
 
 export interface CreateActivityInput {
