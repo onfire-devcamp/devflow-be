@@ -21,8 +21,7 @@ export const getUserSkills = async (
     const processedSkills = [
       { name: "Frontend", value: user.skills.frontend || 0 },
       { name: "Backend", value: user.skills.backend || 0 },
-      { name: "Database", value: user.skills.database || 0 },
-      { name: "DevOps", value: user.skills.devops || 0 },
+      { name: "Fullstack", value: user.skills.fullstack || 0 },
     ];
 
     res.status(200).json(processedSkills);

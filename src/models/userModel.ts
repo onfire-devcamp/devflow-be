@@ -3,8 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface UserSkills {
   frontend: number;
   backend: number;
-  database: number;
-  devops: number;
+  fullstack: number;
 }
 
 export interface UserDocument extends Document {
@@ -15,6 +14,9 @@ export interface UserDocument extends Document {
   providerId?: string;
   lastLogin: Date;
   avatarUrl: string;
+  bio?: string;
+  workplace?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
   currentStreak: number;
   highestStreak: number;
   lastStreakDate?: Date;
@@ -56,6 +58,21 @@ const userSchema = new Schema<UserDocument>(
       type: String,
       default: "",
     },
+    bio: {
+      type: String,
+      maxlength: 160,
+      default: "",
+    },
+    workplace: {
+      type: String,
+      default: "",
+    },
+    socialLinks: [
+      {
+        platform: { type: String, required: true },
+        url: { type: String, required: true },
+      },
+    ],
     currentStreak: {
       type: Number,
       default: 0,
@@ -80,13 +97,7 @@ const userSchema = new Schema<UserDocument>(
         min: 0,
         max: 100,
       },
-      database: {
-        type: Number,
-        default: 0,
-        min: 0,
-        max: 100,
-      },
-      devops: {
+      fullstack: {
         type: Number,
         default: 0,
         min: 0,

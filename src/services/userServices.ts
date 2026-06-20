@@ -51,7 +51,15 @@ export const createUserService = async (
     return {
       accessToken,
       refreshToken,
-      user: { id: user._id, username: user.username, email: user.email },
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        bio: user.bio,
+        workplace: user.workplace,
+        socialLinks: user.socialLinks,
+      },
     };
   } catch (error: unknown) {
     if (
@@ -71,7 +79,9 @@ export const loginUserService = async (
 ): Promise<AuthResult> => {
   const { email, password } = input;
 
-  const user = await User.findOne({ email }).select("+passwordHash");
+  const user = await User.findOne({ email }).select(
+    "+passwordHash avatarUrl bio workplace socialLinks username email",
+  );
   if (!user) throw new AuthenticationError("Invalid email or password!");
 
   if (!user.passwordHash) {
@@ -92,7 +102,15 @@ export const loginUserService = async (
   return {
     accessToken,
     refreshToken,
-    user: { id: user._id, username: user.username, email: user.email },
+    user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      bio: user.bio,
+      workplace: user.workplace,
+      socialLinks: user.socialLinks,
+    },
   };
 };
 
@@ -152,7 +170,15 @@ export const googleAuthService = async (
   return {
     accessToken,
     refreshToken,
-    user: { id: user._id, username: user.username, email: user.email },
+    user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      bio: user.bio,
+      workplace: user.workplace,
+      socialLinks: user.socialLinks,
+    },
   };
 };
 
@@ -212,14 +238,19 @@ export const getUserStreakService = async (
   completedDays: number;
   totalDays: 7;
   message: string;
+  currentStreak: number;
 }> => {
   const weekDays = await getWeekDaysData(userId.toString());
   const completedDays = calculateCompletedDays(weekDays);
   const message = generateStreakMessage(completedDays);
+
+  const user = await User.findById(userId).select("currentStreak").lean();
+
   return {
     weekDays: weekDays,
     completedDays: completedDays,
     totalDays: 7,
     message: message,
+    currentStreak: user?.currentStreak || 0,
   };
 };

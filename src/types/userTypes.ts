@@ -2,14 +2,16 @@ import type { ParsedQs } from "qs";
 export interface UserSkillsPayload {
   frontend?: number;
   backend?: number;
-  database?: number;
-  devops?: number;
+  fullstack?: number;
 }
 
 export interface BaseUserPayload {
   email: string;
   username: string;
   avatarUrl?: string;
+  bio?: string;
+  workplace?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
   skills?: UserSkillsPayload;
 }
 
