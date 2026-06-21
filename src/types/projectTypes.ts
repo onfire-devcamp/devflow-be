@@ -1,6 +1,5 @@
 import type {
   ProjectFeatureItem,
-  ProjectLevel,
   ProjectTechStackItem,
 } from "../models/projectModel.js";
 import type { SkillCategory, TaskDifficulty } from "../models/taskModel.js";

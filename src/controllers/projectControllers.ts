@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import type { ParamsDictionary } from "express-serve-static-core";
-import type { ParsedQs } from "qs";
 import {
   getAllProjects,
   getProjectDetails,

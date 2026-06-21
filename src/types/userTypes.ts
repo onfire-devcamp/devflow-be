@@ -35,7 +35,7 @@ export interface UserIdParams {
   id: string;
 }
 
-export interface UserQuery extends ParsedQs {}
+export type UserQuery = ParsedQs;
 
 export type EmptyObject = Record<string, never>;
 

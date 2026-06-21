@@ -6,7 +6,7 @@ export const getUserSkills = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({ message: "User not authenticated" });
       return;

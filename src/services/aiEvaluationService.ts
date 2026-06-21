@@ -26,7 +26,7 @@ import {
 } from "../constants/chatMessages.js";
 import type { AIEvaluationView } from "../types/aiTypes.js";
 import type { AIEvaluationDocument } from "../models/aiEvaluationModel.js";
-import mongoose, { isValidObjectId } from "mongoose";
+import mongoose from "mongoose";
 import { SchemaType } from "@google/generative-ai";
 
 type ExplainToPassAIResult = {

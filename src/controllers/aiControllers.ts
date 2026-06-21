@@ -1,5 +1,4 @@
 import type { Request, Response } from "express";
-import jwt from "jsonwebtoken";
 import type { ParsedQs } from "qs";
 import {
   sendMessage,
@@ -12,7 +11,6 @@ import {
   submitTaskForEvaluation,
 } from "../services/aiEvaluationService.js";
 import { getAuthenticatedUserId } from "../utils/authUtils.ts";
-import { BadRequestError } from "../utils/customErrors.js";
 import {
   SuccessResponse,
   handleControllerError,

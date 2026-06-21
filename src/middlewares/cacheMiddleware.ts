@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
 import { redisClient, isRedisReady } from "../config/redis.js";
-import { SuccessResponse } from "../utils/responseUtils.js";
 /**
  * Cache-Aside middleware factory.
  *
