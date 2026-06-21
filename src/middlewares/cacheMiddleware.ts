@@ -24,7 +24,7 @@ export const cacheResponse = (ttlSeconds: number) => {
       return;
     }
 
-    const cacheKey = `cache:${req.originalUrl}`;
+    const cacheKey = `cache:v2:${req.originalUrl}`;
 
     try {
       const cachedData = await redisClient.get(cacheKey);
