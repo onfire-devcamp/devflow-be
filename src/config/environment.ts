@@ -18,4 +18,5 @@ export const env = {
   SALT_ROUNDS: Number(process.env.SALT_ROUNDS) || 10,
   CORS_ORIGIN: process.env.CORS_ORIGIN ?? "http://localhost:5173",
   NODE_ENV: process.env.NODE_ENV ?? "development",
+  REDIS_URL: process.env.REDIS_URL ?? "redis://localhost:6379",
 };

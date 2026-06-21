@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import type { ParamsDictionary } from "express-serve-static-core";
 import type { ParsedQs } from "qs";
 import {
   getAllProjects,
@@ -15,7 +16,7 @@ import {
   SuccessResponse,
 } from "../utils/responseUtils.js";
 
-interface ProjectParams {
+interface ProjectParams extends ParamsDictionary {
   projectId: string;
 }
 
@@ -32,7 +33,7 @@ export const getProjectsController = async (
   }
 };
 
-interface ProjectDetailParams {
+interface ProjectDetailParams extends ParamsDictionary {
   slug: string;
 }
 
@@ -116,7 +117,7 @@ export const getTaskDetailsController = async (
 };
 
 export const getProjectCodebaseController = async (
-  req: Request<{ slug: string }>,
+  req: Request<ProjectDetailParams>,
   res: Response,
 ): Promise<void> => {
   try {

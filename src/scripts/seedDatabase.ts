@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { pathToFileURL } from "node:url";
 
 import connectDB from "../config/database.js";
+import { connectRedis, redisClient, isRedisReady } from "../config/redis.js";
 import FileTemplate, {
   type FileTemplateDocument,
 } from "../models/fileTemplateModel.js";
@@ -198,6 +199,27 @@ const seedProject = async (project: SeedProject): Promise<void> => {
 };
 
 // ---------------------------------------------------------------------------
+// Redis Cache Invalidation
+// ---------------------------------------------------------------------------
+
+const flushRedisCache = async (): Promise<void> => {
+  try {
+    await connectRedis();
+
+    if (!isRedisReady()) {
+      console.warn("  ⚠ Redis not available — skipping cache flush");
+      return;
+    }
+
+    await redisClient.flushAll();
+    console.info("  ✓ Redis cache flushed successfully.");
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("  ✗ Redis cache flush failed:", message);
+  }
+};
+
+// ---------------------------------------------------------------------------
 // Main entry point
 // ---------------------------------------------------------------------------
 
@@ -224,12 +246,19 @@ export async function seedDatabase(): Promise<void> {
       await seedProject(project);
     }
 
+    // Flush Redis cache so stale entries don't survive a re-seed
+    await flushRedisCache();
+
     console.info("\n═══════════════════════════════════════════════");
     console.info(
       `  Done — ${ALL_PROJECTS.length} project(s) seeded successfully`,
     );
     console.info("═══════════════════════════════════════════════\n");
   } finally {
+    // Disconnect both datastores
+    if (isRedisReady()) {
+      await redisClient.disconnect();
+    }
     await mongoose.disconnect();
   }
 }
