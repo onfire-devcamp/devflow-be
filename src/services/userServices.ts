@@ -59,6 +59,7 @@ export const createUserService = async (
         bio: user.bio,
         workplace: user.workplace,
         socialLinks: user.socialLinks,
+        totalXp: user.totalXp,
       },
     };
   } catch (error: unknown) {
@@ -80,7 +81,7 @@ export const loginUserService = async (
   const { email, password } = input;
 
   const user = await User.findOne({ email }).select(
-    "+passwordHash avatarUrl bio workplace socialLinks username email",
+    "+passwordHash avatarUrl bio workplace socialLinks username email totalXp",
   );
   if (!user) throw new AuthenticationError("Invalid email or password!");
 
@@ -110,6 +111,7 @@ export const loginUserService = async (
       bio: user.bio,
       workplace: user.workplace,
       socialLinks: user.socialLinks,
+      totalXp: user.totalXp,
     },
   };
 };
@@ -178,6 +180,7 @@ export const googleAuthService = async (
       bio: user.bio,
       workplace: user.workplace,
       socialLinks: user.socialLinks,
+      totalXp: user.totalXp,
     },
   };
 };

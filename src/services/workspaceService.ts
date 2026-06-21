@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import FileTemplate from "../models/fileTemplateModel.js";
 import Module from "../models/moduleModel.js";
 import Task from "../models/taskModel.js";
+import User from "../models/userModel.js";
 import UserFile from "../models/userFileModel.js";
 import UserProgress from "../models/userProgressModel.js";
 import {
@@ -238,6 +239,8 @@ export const completeTask = async (
       toIdString(completedTaskId),
     ),
   );
+
+  const isFirstTimeCompletion = !completedTaskIdSet.has(toIdString(task._id));
   completedTaskIdSet.add(toIdString(task._id));
 
   const isModuleComplete = moduleTaskIds.every((moduleTask) =>
@@ -276,6 +279,14 @@ export const completeTask = async (
 
   if (!updatedProgress) {
     throw new BadRequestError("Unable to update workspace progress.");
+  }
+
+  if (isFirstTimeCompletion && task.skillPoints > 0) {
+    await User.findByIdAndUpdate(
+      userId,
+      { $inc: { totalXp: task.skillPoints } },
+      { session },
+    );
   }
 
   return toUserProgressView(updatedProgress);

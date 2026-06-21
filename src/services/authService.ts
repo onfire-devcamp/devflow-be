@@ -26,6 +26,7 @@ export interface AuthResult extends TokenPair {
     bio?: string;
     workplace?: string;
     socialLinks?: Array<{ platform: string; url: string }>;
+    totalXp?: number;
   };
 }
 
@@ -91,7 +92,7 @@ export const rotateRefreshToken = async (
 
   // 6. Fetch user to include in response
   const user = await User.findById(userId).select(
-    "email username avatarUrl bio workplace socialLinks",
+    "email username avatarUrl bio workplace socialLinks totalXp",
   );
   if (!user) throw new AuthenticationError("User account no longer exists.");
 
@@ -113,6 +114,7 @@ export const rotateRefreshToken = async (
       bio: user.bio,
       workplace: user.workplace,
       socialLinks: user.socialLinks,
+      totalXp: user.totalXp,
     },
   };
 };
