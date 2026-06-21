@@ -19,6 +19,7 @@
     "start": "node dist/server.js",
     "dev": "tsx src/server.ts",
     "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint src/",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky install"
   },
