@@ -1,4 +1,3 @@
-import type { ProjectLevel } from "../models/projectModel.js";
 import type { SkillCategory, TaskDifficulty } from "../models/taskModel.js";
 
 export type SeedFoundationalFile = {

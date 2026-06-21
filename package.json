@@ -19,6 +19,7 @@
     "start": "node dist/server.js",
     "dev": "tsx src/server.ts",
     "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint \"src/**/*.ts\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky install"
   },
@@ -40,6 +41,7 @@
     "mongoose": "^9.4.1",
     "node-cron": "^4.1.1",
     "react-intersection-observer": "^10.0.3",
+    "redis": "^6.0.0",
     "typescript": "^5.9.3",
     "zod": "^4.4.3"
   },
@@ -57,7 +59,8 @@
     "lint-staged": "^16.4.0",
     "prettier": "3.8.3",
     "ts-node": "^10.9.2",
-    "tsx": "^4.22.3"
+    "tsx": "^4.22.3",
+    "typescript-eslint": "^8.61.1"
   },
   "lint-staged": {
     "src/**/*.ts": [

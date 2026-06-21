@@ -1,5 +1,4 @@
 import type { Request, Response } from "express";
-import jwt from "jsonwebtoken";
 import type { ParsedQs } from "qs";
 import {
   completeTask,

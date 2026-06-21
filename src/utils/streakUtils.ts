@@ -6,7 +6,6 @@ import {
   STREAK_CONFIG,
 } from "../constants/streak.ts";
 import { WeekDayData, LeanActivity } from "../types/userTypes.ts";
-import { Types } from "mongoose";
 
 export const getWeekDaysData = async (
   userId: string,

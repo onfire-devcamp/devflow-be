@@ -28,6 +28,7 @@ import type {
 import { TaskRoadmapStatus } from "../types/projectTypes.js";
 
 const toModuleWithTasksView = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   module: any,
   tasks: TaskView[],
 ): ModuleWithTasksView => ({
