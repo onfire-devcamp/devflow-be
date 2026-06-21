@@ -21,6 +21,7 @@ export interface UserDocument extends Document {
   highestStreak: number;
   lastStreakDate?: Date;
   skills: UserSkills;
+  totalXp: number;
 }
 
 const userSchema = new Schema<UserDocument>(
@@ -103,6 +104,11 @@ const userSchema = new Schema<UserDocument>(
         min: 0,
         max: 100,
       },
+    },
+    totalXp: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
   },
   {
