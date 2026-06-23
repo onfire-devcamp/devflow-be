@@ -19,13 +19,13 @@ export const globalLimiter = rateLimit({
 
 export const authLimiter = rateLimit({
   store: createRedisStore("rl:auth:"),
-  windowMs: 15 * 60 * 1000,
+  windowMs: 5 * 60 * 1000,
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     success: false,
-    message: "Too many login attempts. Try again in 15 minutes.",
+    message: "Too many login attempts. Try again in 5 minutes.",
   },
 });
 
@@ -50,7 +50,7 @@ export const aiRateLimiter = rateLimit({
 export const autoSaveLimiter = rateLimit({
   store: createRedisStore("rl:autosave:"),
   windowMs: 10 * 1000,
-  max: 15,
+  max: 30,
   keyGenerator: (req: Request) => {
     if (req.user && req.user.userId) {
       return req.user.userId.toString();
