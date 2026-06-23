@@ -12,10 +12,7 @@ import {
   saveUserFileBodySchema,
 } from "../middlewares/workspaceValidationMiddleware.js";
 import { validateBody } from "../middlewares/validationMiddleware.js";
-import {
-  autoSaveLimiter,
-  heavyExportLimiter,
-} from "../middlewares/rateLimiters.js";
+import { autoSaveLimiter } from "../middlewares/rateLimiters.js";
 
 const router = express.Router();
 
@@ -37,6 +34,6 @@ router.put(
   validateBody(saveUserFileBodySchema),
   saveUserFileController,
 );
-router.get("/:projectId", heavyExportLimiter, getUserWorkspaceController);
+router.get("/:projectId", getUserWorkspaceController);
 
 export default router;
