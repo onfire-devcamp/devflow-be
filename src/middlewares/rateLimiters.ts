@@ -1,12 +1,12 @@
 import rateLimit from "express-rate-limit";
-import { rateLimitStore } from "../config/rateLimitStore.js";
+import { createRedisStore } from "../config/rateLimitStore.js";
 import type { Request } from "express";
 
 // Ensure global type augmentation is loaded
 import "./authMiddleware.js";
 
 export const globalLimiter = rateLimit({
-  store: rateLimitStore,
+  store: createRedisStore("rl:global:"),
   windowMs: 15 * 60 * 1000,
   max: 1000,
   standardHeaders: true,
@@ -18,7 +18,7 @@ export const globalLimiter = rateLimit({
 });
 
 export const authLimiter = rateLimit({
-  store: rateLimitStore,
+  store: createRedisStore("rl:auth:"),
   windowMs: 15 * 60 * 1000,
   max: 5,
   standardHeaders: true,
@@ -30,7 +30,7 @@ export const authLimiter = rateLimit({
 });
 
 export const aiRateLimiter = rateLimit({
-  store: rateLimitStore,
+  store: createRedisStore("rl:ai:"),
   windowMs: 60 * 60 * 1000,
   max: 50,
   keyGenerator: (req: Request) => {
@@ -48,7 +48,7 @@ export const aiRateLimiter = rateLimit({
 });
 
 export const autoSaveLimiter = rateLimit({
-  store: rateLimitStore,
+  store: createRedisStore("rl:autosave:"),
   windowMs: 10 * 1000,
   max: 15,
   keyGenerator: (req: Request) => {
@@ -66,7 +66,7 @@ export const autoSaveLimiter = rateLimit({
 });
 
 export const heavyExportLimiter = rateLimit({
-  store: rateLimitStore,
+  store: createRedisStore("rl:export:"),
   windowMs: 5 * 60 * 1000,
   max: 5,
   keyGenerator: (req: Request) => {
