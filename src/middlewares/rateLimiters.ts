@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { createRedisStore } from "../config/rateLimitStore.js";
 import type { Request } from "express";
 
@@ -37,7 +37,7 @@ export const aiRateLimiter = rateLimit({
     if (req.user && req.user.userId) {
       return req.user.userId.toString();
     }
-    return req.ip || "unknown";
+    return req.ip ? ipKeyGenerator(req.ip) : "unknown";
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -55,7 +55,7 @@ export const autoSaveLimiter = rateLimit({
     if (req.user && req.user.userId) {
       return req.user.userId.toString();
     }
-    return req.ip || "unknown";
+    return req.ip ? ipKeyGenerator(req.ip) : "unknown";
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -73,7 +73,7 @@ export const heavyExportLimiter = rateLimit({
     if (req.user && req.user.userId) {
       return req.user.userId.toString();
     }
-    return req.ip || "unknown";
+    return req.ip ? ipKeyGenerator(req.ip) : "unknown";
   },
   standardHeaders: true,
   legacyHeaders: false,
