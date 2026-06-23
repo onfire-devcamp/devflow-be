@@ -12,6 +12,7 @@ import {
   saveUserFileBodySchema,
 } from "../middlewares/workspaceValidationMiddleware.js";
 import { validateBody } from "../middlewares/validationMiddleware.js";
+import { autoSaveLimiter } from "../middlewares/rateLimiters.js";
 
 const router = express.Router();
 
@@ -29,6 +30,7 @@ router.post(
 );
 router.put(
   "/file",
+  autoSaveLimiter,
   validateBody(saveUserFileBodySchema),
   saveUserFileController,
 );
