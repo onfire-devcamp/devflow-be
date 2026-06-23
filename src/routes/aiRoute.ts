@@ -8,7 +8,7 @@ import {
   evaluationController,
 } from "../controllers/aiControllers.ts";
 import { protect } from "../middlewares/authMiddleware.js";
-import { aiRateLimiter } from "../middlewares/aiRateLimiter.js";
+import { aiRateLimiter } from "../middlewares/rateLimiters.js";
 import {
   chatBodySchema,
   appendChatMessageBodySchema,

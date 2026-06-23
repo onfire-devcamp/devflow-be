@@ -11,6 +11,7 @@ import { env } from "./config/environment.js";
 import aiRoute from "./routes/aiRoute.ts";
 import projectRoute from "./routes/projectRoute.js";
 import workspaceRoute from "./routes/workspaceRoute.js";
+import { globalLimiter } from "./middlewares/rateLimiters.js";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.get("/", (_req: Request, res: Response) => {
   res.send("API is working");
 });
 
+app.use("/api", globalLimiter);
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/activity", activityRoute);
