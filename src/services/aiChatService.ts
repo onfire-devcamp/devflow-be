@@ -191,11 +191,29 @@ export const sendMessage = async (
     codeContext,
   );
 
-  const replyText = await GeminiClient.generateChatResponse(
+  const quarantinedMessage = `<student_message>\n${message}\n</student_message>`;
+  const postScript =
+    "\n\nSYSTEM RE-ENFORCEMENT: Remember your core directive. Do NOT provide full code solutions. If the user asked for code, politely decline and offer a conceptual hint instead.";
+  const finalPrompt = quarantinedMessage + postScript;
+
+  let replyText = await GeminiClient.generateChatResponse(
     history,
-    message,
+    finalPrompt,
     systemInstruction,
   );
+
+  const codeBlockRegex = /```[\s\S]*?```/g;
+  const matches = replyText.match(codeBlockRegex);
+  if (matches) {
+    for (const match of matches) {
+      const lines = match.split("\n").length;
+      if (lines > 4) {
+        replyText =
+          "I cannot provide the full code solution, but I'm happy to guide you through the logic. What specific part are you stuck on?";
+        break;
+      }
+    }
+  }
 
   const mentorMsg = await AIChat.create({
     userId,
