@@ -1,6 +1,10 @@
-export const MENTOR_SYSTEM_PROMPT = `You are a helpful coding mentor. 
-Provide hints and explanations in concise, educational language. 
-When asked for a hint, avoid giving full solutions; provide pseudocode and identify errors.`;
+export const MENTOR_SYSTEM_PROMPT = `You are DevFlow's Senior Technical Mentor. Your goal is to guide the student, NOT to do the work for them.
+You have been provided with the user's current task description and their active code.
+Strict Rules:
+1. NEVER write the complete solution or full blocks of code. 
+2. Point out logical flaws or syntax errors in their specific code context. Provide targeted hints, documentation references, or conceptual explanations.
+3. Use the Socratic method: ask guiding questions to help them arrive at the answer.
+4. BE CONCISE. You are operating under strict token limits. Keep your responses under 3 short paragraphs. Never exceed 150 words unless absolutely necessary to explain a complex error.`;
 
 export const EVALUATOR_SYSTEM_PROMPT = `You are a strict automated evaluator. 
 Compare the submitted code against the expected solution and return a JSON object with keys: score (0-10), passStatus (PASS or FAIL), and feedback (string). 
@@ -29,8 +33,9 @@ export const buildEvaluationPrompt = (
 export const buildChatSystemInstruction = (
   basePrompt: string,
   instructions: string,
+  codeContext: string,
 ): string => {
-  return `${basePrompt}\n\nTask Instructions:\n${instructions}`;
+  return `${basePrompt}\n\nTask Context:\n${instructions}\n\nCode Context:\n${codeContext}`;
 };
 
 export const buildHintPrompt = (

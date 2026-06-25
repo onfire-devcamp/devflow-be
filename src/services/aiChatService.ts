@@ -157,6 +157,7 @@ export const sendMessage = async (
   projectId: string,
   taskId: string,
   message: string,
+  codeContext: string,
 ): Promise<AIChatView> => {
   if (![userId, projectId, taskId].every(isValidObjectId)) {
     throw new BadRequestError("Invalid identifiers for chat message.");
@@ -170,8 +171,11 @@ export const sendMessage = async (
     projectId,
     taskId,
   })
-    .sort({ createdAt: 1 })
+    .sort({ createdAt: -1 })
+    .limit(4)
     .lean();
+
+  historyDocs.reverse();
 
   const history = historyDocs.map((h) => ({
     role: h.role,
@@ -184,6 +188,7 @@ export const sendMessage = async (
   const systemInstruction = buildChatSystemInstruction(
     MENTOR_SYSTEM_PROMPT,
     taskDetails.task.instructions ?? "",
+    codeContext,
   );
 
   const replyText = await GeminiClient.generateChatResponse(
