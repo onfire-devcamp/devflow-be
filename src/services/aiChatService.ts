@@ -158,6 +158,7 @@ export const sendMessage = async (
   taskId: string,
   message: string,
   codeContext: string,
+  currentFileName: string,
 ): Promise<AIChatView> => {
   if (![userId, projectId, taskId].every(isValidObjectId)) {
     throw new BadRequestError("Invalid identifiers for chat message.");
@@ -189,6 +190,7 @@ export const sendMessage = async (
     MENTOR_SYSTEM_PROMPT,
     taskDetails.task.instructions ?? "",
     codeContext,
+    currentFileName,
   );
 
   const quarantinedMessage = `<student_message>\n${message}\n</student_message>`;
