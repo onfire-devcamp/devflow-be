@@ -6,6 +6,8 @@ export const chatBodySchema = z.object({
   projectId: objectIdSchema,
   taskId: objectIdSchema,
   message: z.string().trim().min(1, "message is required"),
+  codeContext: z.string().optional(),
+  currentFileName: z.string().optional(),
 });
 
 export const hintBodySchema = z.object({

@@ -1,7 +1,8 @@
 import AIHint from "../models/aiHintModel.js";
 import GeminiClient from "../utils/geminiClient.js";
 import {
-  MENTOR_SYSTEM_PROMPT,
+  HINT_SYSTEM_PROMPT,
+  EXPLAIN_SYSTEM_PROMPT,
   buildHintPrompt,
 } from "../constants/aiPrompts.js";
 import { toAIHintView } from "../utils/mappers.js";
@@ -32,10 +33,10 @@ export const requestHintOrExplanation = async (
 
   const prompt = buildHintPrompt(target.content, selectedCode, userQuestion);
 
-  const aiResponse = await GeminiClient.generateText(
-    prompt,
-    MENTOR_SYSTEM_PROMPT,
-  );
+  const systemInstruction =
+    type === "hint" ? HINT_SYSTEM_PROMPT : EXPLAIN_SYSTEM_PROMPT;
+
+  const aiResponse = await GeminiClient.generateText(prompt, systemInstruction);
 
   const saved = await AIHint.create({
     userId,
