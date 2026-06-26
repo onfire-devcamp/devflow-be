@@ -2,8 +2,8 @@ import AIEvaluation from "../models/aiEvaluationModel.js";
 import Task from "../models/taskModel.js";
 import GeminiClient from "../utils/geminiClient.js";
 import {
-  EVALUATOR_SYSTEM_PROMPT,
-  EXPLAIN_TO_PASS_PROMPT,
+  CODE_EVAL_SYSTEM_PROMPT,
+  EXPLAIN_EVAL_SYSTEM_PROMPT,
   buildEvaluationPrompt,
   buildExplainToPassPrompt,
 } from "../constants/aiPrompts.js";
@@ -65,7 +65,7 @@ export const submitTaskForEvaluation = async (
   const structured = await GeminiClient.generateStructuredResponse(
     prompt,
     schema,
-    EVALUATOR_SYSTEM_PROMPT,
+    CODE_EVAL_SYSTEM_PROMPT,
   );
 
   const result = structured as unknown as {
@@ -197,6 +197,7 @@ export const evaluateExplainToPass = async (
     task.title,
     concepts,
     explanation.trim(),
+    mcqScore,
   );
 
   const schema = {
@@ -212,7 +213,7 @@ export const evaluateExplainToPass = async (
   const structured = await GeminiClient.generateStructuredResponse(
     prompt,
     schema,
-    EXPLAIN_TO_PASS_PROMPT,
+    EXPLAIN_EVAL_SYSTEM_PROMPT,
   );
 
   const result = structured as ExplainToPassAIResult;

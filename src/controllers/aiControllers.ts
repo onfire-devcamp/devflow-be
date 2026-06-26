@@ -21,6 +21,8 @@ interface ChatBody {
   projectId: string;
   taskId: string;
   message: string;
+  codeContext: string;
+  currentFileName: string;
 }
 
 interface HintBody {
@@ -110,9 +112,17 @@ export const chatController = async (
 ): Promise<void> => {
   try {
     const userId = getAuthenticatedUserId(req);
-    const { projectId, taskId, message } = req.body;
+    const { projectId, taskId, message, codeContext, currentFileName } =
+      req.body;
 
-    const result = await sendMessage(userId, projectId, taskId, message);
+    const result = await sendMessage(
+      userId,
+      projectId,
+      taskId,
+      message,
+      codeContext,
+      currentFileName,
+    );
 
     new SuccessResponse(res, result);
   } catch (error: unknown) {
