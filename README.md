@@ -196,20 +196,9 @@ npm run dev
 ```
 
 ## Contributors
-<div align="center">
-<a href="https://github.com/dhp-exe">
-<img src="https://www.google.com/search?q=https://github.com/dhp-exe.png%3Fsize%3D100" width="60" height="60" style="border-radius: 50%; margin: 5px;" alt="dhp-exe" title="dhp-exe"/>
+<a href="https://github.com/onfire-devcamp/devflow-be/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=onfire-devcamp/devflow-be" alt="devflow-be contributors" />
 </a>
-<a href="https://github.com/Duythanducminh">
-<img src="https://www.google.com/search?q=https://github.com/Duythanducminh.png%3Fsize%3D100" width="60" height="60" style="border-radius: 50%; margin: 5px;" alt="Duythanducminh" title="Duythanducminh"/>
-</a>
-<a href="https://github.com/huytranminhcs0707-lab">
-<img src="https://www.google.com/search?q=https://github.com/huytranminhcs0707-lab.png%3Fsize%3D100" width="60" height="60" style="border-radius: 50%; margin: 5px;" alt="huytranminhcs0707-lab" title="huytranminhcs0707-lab"/>
-</a>
-<a href="https://www.google.com/search?q=https://github.com/ShineyIsHere">
-<img src="https://www.google.com/search?q=https://github.com/ShineyIsHere.png%3Fsize%3D100" width="60" height="60" style="border-radius: 50%; margin: 5px;" alt="ShineyIsHere" title="ShineyIsHere"/>
-</a>
-</div>
 
 ## License & Feedback
 Distributed under the MIT License. If you have feedback or encounter issues, please open an issue in the repository.
