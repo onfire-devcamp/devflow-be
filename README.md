@@ -51,7 +51,7 @@ By offloading state management to a unified Redis cache and isolating core learn
 * **Explain-to-Pass Verification:** A specialized module that grades users' logical explanations of their code using AI heuristics before allowing progression.
 * **High-Frequency Auto-Save Workspace:** Manages highly mutable user code workspaces using robust rate limiting, persisting incremental file modifications to the database asynchronously.
 * **Mastery-Based Progression State:** Secures the sequential unlocking roadmap, ensuring that learners cannot skip prerequisites, while also tracking daily learning streaks.
-* **Secure Authentication & Identity:** Utilizes JSON Web Tokens (JWT) coupled with standard flows and standard email/password flows to manage stateless sessions securely.
+* **Secure Authentication & Identity:** Utilizes JSON Web Tokens (JWT) utilizing a dual-token mechanism (short-lived access tokens and refresh tokens stored securely in HTTP-only cookies) coupled with standard email/password flows to manage stateless sessions securely.
 
 ## Project Architecture
 The backend utilizes a scalable, stateless **MVC (Model-View-Controller)** pattern augmented with specialized Service layers for business logic and AI orchestration. Redis is heavily leveraged as a shared state manager, driving the 5-Tier Rate Limiting system to prevent abuse of our AI models and database. For AI context, the backend dynamically queries decoupled collections (`AI_CHATS`, `AI_HINTS`) to construct sliding window context histories, ensuring the mentor remains aware of previous student interactions while strictly bounding token usage.
@@ -107,7 +107,6 @@ Production deployment requires specific environment variables, most notably `RED
 │   │   ├── activityControllers.ts
 │   │   ├── aiControllers.ts
 │   │   ├── authControllers.ts
-│   │   ├── progressBarLogic.ts
 │   │   ├── projectControllers.ts
 │   │   ├── userControllers.ts
 │   │   ├── workspaceControllers.ts
@@ -122,11 +121,7 @@ Production deployment requires specific environment variables, most notably `RED
 │   │   ├── activityModel.ts
 │   │   ├── aiChatModel.ts
 │   │   ├── aiEvaluationModel.ts
-│   │   ├── aiHintModel.ts
-│   │   ├── fileTemplateModel.ts
-│   │   ├── moduleModel.ts
 │   │   ├── projectModel.ts
-│   │   ├── refreshTokenModel.ts
 │   │   ├── taskFileModel.ts
 │   │   ├── taskModel.ts
 │   │   ├── userFileModel.ts
@@ -143,10 +138,8 @@ Production deployment requires specific environment variables, most notably `RED
 │   │   ├── activityService.ts
 │   │   ├── aiChatService.ts
 │   │   ├── aiEvaluationService.ts
-│   │   ├── aiHintService.ts
 │   │   ├── authService.ts
 │   │   ├── projectService.ts
-│   │   ├── streakService.ts
 │   │   ├── userServices.ts
 │   │   ├── workspaceService.ts
 │   ├── types/
@@ -161,17 +154,10 @@ Production deployment requires specific environment variables, most notably `RED
 │   │   ├── geminiClient.ts
 │   │   ├── mappers.ts
 │   │   ├── responseUtils.ts
-│   │   ├── streakUtils.ts
-│   │   ├── tokenUtils.ts
+│   │   ├── ...
 │   ├── scripts/
 │   │   ├── seedDatabase.ts
-│   │   ├── seedKahoot.ts
-│   │   ├── seedSinglePageCV.ts
-│   │   ├── seedTwitterClone.ts
 │   │   ├── seedTypes.ts
-│   │   ├── seedUrlShortener.ts
-│   │   ├── simulateProjectCompletion.ts
-│   │   ├── updateTasksMCQ.ts
 ```
 
 ## Getting Started
@@ -192,7 +178,15 @@ npm ci
 
 # Setup environment variables
 cp .env.example .env
-# Edit .env and populate MONGO_URI, GEMINI_API_KEY, REDIS_URL, etc.
+
+### Environment Variables
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `PORT` | The port the server runs on | `3000` |
+| `MONGO_URI` | MongoDB connection string | `mongodb://localhost:27017/devflow` |
+| `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
+| `GEMINI_API_KEY` | Google Generative AI SDK key | `AIza...` |
+| `JWT_SECRET` | Secret for signing auth tokens | `your_super_secret_key` |
 
 # Start Redis (using Docker)
 docker-compose up -d
@@ -202,10 +196,20 @@ npm run dev
 ```
 
 ## Contributors
-* dhp-exe
-* Duythanducminh
-* huytranminhcs0707-lab
-* ShineyIsHere
+<div align="center">
+<a href="https://github.com/dhp-exe">
+<img src="https://www.google.com/search?q=https://github.com/dhp-exe.png%3Fsize%3D100" width="60" height="60" style="border-radius: 50%; margin: 5px;" alt="dhp-exe" title="dhp-exe"/>
+</a>
+<a href="https://github.com/Duythanducminh">
+<img src="https://www.google.com/search?q=https://github.com/Duythanducminh.png%3Fsize%3D100" width="60" height="60" style="border-radius: 50%; margin: 5px;" alt="Duythanducminh" title="Duythanducminh"/>
+</a>
+<a href="https://github.com/huytranminhcs0707-lab">
+<img src="https://www.google.com/search?q=https://github.com/huytranminhcs0707-lab.png%3Fsize%3D100" width="60" height="60" style="border-radius: 50%; margin: 5px;" alt="huytranminhcs0707-lab" title="huytranminhcs0707-lab"/>
+</a>
+<a href="https://www.google.com/search?q=https://github.com/ShineyIsHere">
+<img src="https://www.google.com/search?q=https://github.com/ShineyIsHere.png%3Fsize%3D100" width="60" height="60" style="border-radius: 50%; margin: 5px;" alt="ShineyIsHere" title="ShineyIsHere"/>
+</a>
+</div>
 
 ## License & Feedback
 Distributed under the MIT License. If you have feedback or encounter issues, please open an issue in the repository.
