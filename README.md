@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>DevFlow Backend API</h1>
+  <h1><img src="./.github/assets/logo.png" width="40" height="40" style="vertical-align: middle; border-radius: 50%;" /> DevFlow Backend API</h1>
   <p>The core engine powering DevFlow's interactive coding and AI mentoring platform.</p>
   
   <a href="https://github.com/onfire-devcamp/devflow-fe"><b>🔗 View the Frontend Repository</b></a>
