@@ -1,0 +1,62 @@
+name: Automated Release from Changelog
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Extract Version from Tag
+        id: version
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+
+      - name: Extract Release Notes from CHANGELOG.md
+        id: changelog
+        run: |
+          TAG="${{ steps.version.outputs.TAG_NAME }}"
+
+          # Use awk to extract content between the matching "## vX.Y.Z" header
+          # and the next "## v" header (or end of file).
+          # 1. Skip the "## vX.Y.Z" header line itself.
+          # 2. Stop before the next "## v" header or "---" separator.
+          awk -v tag="$TAG" '
+            BEGIN { found=0 }
+            # Match the target version header exactly
+            $0 ~ "^## " tag "$" || $0 ~ "^## " tag " " { found=1; next }
+            # Stop at the next version header or horizontal rule
+            found && /^## v/   { exit }
+            found && /^---$/   { next }
+            # Print all lines in the matched section
+            found { print }
+          ' CHANGELOG.md > release_notes.txt
+
+          # Trim leading/trailing blank lines
+          sed -i '/./,$!d' release_notes.txt        # trim leading blanks
+          sed -i -e :a -e '/^\s*$/{ $d; N; ba; }' release_notes.txt  # trim trailing blanks
+
+          # Fail-safe: abort if nothing was extracted
+          if [ ! -s release_notes.txt ]; then
+            echo "::error::No changelog entry found for tag $TAG"
+            exit 1
+          fi
+
+          echo "--- Extracted Release Notes ---"
+          cat release_notes.txt
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.version.outputs.TAG_NAME }}" \
+            --title "${{ steps.version.outputs.TAG_NAME }}" \
+            --notes-file release_notes.txt
