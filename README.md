@@ -1,118 +1,204 @@
-# DevFlow - Backend
+<div align="center">
+  <h1><img src="./.github/assets/logo.png" width="40" height="40" style="vertical-align: middle; border-radius: 50%;" /> DevFlow Backend API</h1>
+  <p>The core engine powering DevFlow's interactive coding and AI mentoring platform.</p>
+  
+  <a href="https://github.com/onfire-devcamp/devflow-fe"><b>🔗 View the Frontend Repository</b></a>
+  <br />
+  <br />
+
+  ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+  ![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
+  ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+  ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
+  ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+  ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+  ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
+</div>
+
+---
 
 <details>
-<summary>Table of Contents</summary>
-- [About This Project](#about-this-project)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Folder Structure](#folder-structure)
-- [API Endpoints](#api-endpoints)
-- [Getting Started](#getting-started)
-- [Installation](#installation)
-- [Contributors](#contributors)
-- [License](#license)
+  <summary><b>📖 Table of Contents</b></summary>
+  
+  - [Overview](#overview)
+  - [Tech Stack](#tech-stack)
+  - [Features](#features)
+  - [Project Architecture](#project-architecture)
+  - [Security & Guardrails](#security--guardrails)
+  - [API Documentation](#api-documentation)
+  - [CI/CD & Deployments](#cicd--deployments)
+  - [Project Structure](#project-structure)
+  - [Getting Started](#getting-started)
+  - [Contributors](#contributors)
+  - [License & Feedback](#license--feedback)
 </details>
 
----
+## Overview
+The DevFlow Backend API serves as the central nervous system bridging the user's interactive code editor with the AI mentoring engine. It's a robust, stateless Node.js application built with Express and TypeScript, designed to handle high-frequency interactions like real-time workspace auto-saving and low-latency code evaluations. 
 
-## About This Project
-
-DevFlow Backend is the server-side component of the DevFlow platform — an AI-powered, project-based learning system designed to help developers escape "tutorial hell".
-
-The backend handles:
-- Project and module data
-- Scenario/step management
-- User progress tracking
-- AI evaluation orchestration (Explain-to-Pass system)
-- Authentication and Progress tracking
-
-It acts as the bridge between the frontend learning experience and AI-powered feedback.
-
----
-
-## Features
-
-- 📦 Project & Module Management  
-- 🧠 AI Evaluation System (Explain-to-Pass)  
-- 🧩 Step-based Learning Flow  
-- 📊 User Progress Tracking  
-- 🔐 Authentication (optional for MVP)  
-- ⚙️ Scalable REST API  
-
----
+By offloading state management to a unified Redis cache and isolating core learning data in MongoDB, the architecture ensures resilient scaling. Crucially, the backend acts as a secure gateway to the Gemini AI models, orchestrating prompts, validating context, and strictly enforcing guardrails to provide Socratic guidance rather than spoon-fed code solutions.
 
 ## Tech Stack
+* **Runtime/Framework:** Node.js (v20), Express (v5)
+* **Language:** TypeScript
+* **Database & ORM:** MongoDB (v7), Mongoose (v9)
+* **Caching & Rate Limiting:** Redis, `ioredis`, `rate-limit-redis`
+* **AI Engine:** Google Generative AI SDK (Gemini 2.5 Flash)
+* **Security & Validation:** `helmet`, `bcrypt`, `jsonwebtoken`, `zod`
 
-- **Node.js** – Runtime environment  
-- **Express.js** – Backend framework  
-- **MongoDB** – NoSQL database  
-- **Mongoose** – ODM for MongoDB  
-- **OpenAI API (or similar)** – AI evaluation service  
+## Features
+* **AI Mentoring Engine:** Seamlessly integrates with Gemini 2.5 Flash, actively preventing spoon-feeding by employing prompt sandwiching and post-generation regex output sanitization.
+* **Explain-to-Pass Verification:** A specialized module that grades users' logical explanations of their code using AI heuristics before allowing progression.
+* **High-Frequency Auto-Save Workspace:** Manages highly mutable user code workspaces using robust rate limiting, persisting incremental file modifications to the database asynchronously.
+* **Mastery-Based Progression State:** Secures the sequential unlocking roadmap, ensuring that learners cannot skip prerequisites, while also tracking daily learning streaks.
+* **Secure Authentication & Identity:** Utilizes JSON Web Tokens (JWT) utilizing a dual-token mechanism (short-lived access tokens and refresh tokens stored securely in HTTP-only cookies) coupled with standard email/password flows to manage stateless sessions securely.
 
+## Project Architecture
+The backend utilizes a scalable, stateless **MVC (Model-View-Controller)** pattern augmented with specialized Service layers for business logic and AI orchestration. Redis is heavily leveraged as a shared state manager, driving the 5-Tier Rate Limiting system to prevent abuse of our AI models and database. For AI context, the backend dynamically queries decoupled collections (`AI_CHATS`, `AI_HINTS`) to construct sliding window context histories, ensuring the mentor remains aware of previous student interactions while strictly bounding token usage.
 
----
+## Security & Guardrails
+### 1. Redis-Backed Rate Limiting (5-Tier)
+Our backend implements a tiered defense mechanism using `express-rate-limit` and `ioredis` to prevent abuse:
+- **Global Limiter (`rl:global:`):** 1000 requests per 15 minutes window for all general API traffic.
+- **Auth Limiter (`rl:auth:`):** Strict 5 attempts per 5 minutes to mitigate brute-force logins.
+- **AI Limiter (`rl:ai:`):** 50 requests per 60 minutes, keyed by User ID to enforce hourly AI quotas.
+- **Auto-Save Limiter (`rl:autosave:`):** 30 requests per 10 seconds, allowing for frequent typing saves without overloading the DB.
+- **Export Limiter (`rl:export:`):** 5 requests per 5 minutes for heavy payload generation.
 
-## Folder Structure
+### 2. Prompt Injection Defenses
+To ensure the AI acts as a mentor and not a code-generator, we employ three defensive layers within our AI services:
+- **XML Quarantine:** User input is strictly wrapped inside `<student_message>` tags to isolate it from system instructions.
+- **The Sandwich Method:** System re-enforcement instructions (`"Do NOT provide full code solutions..."`) are forcibly appended *after* the user's quarantined input to ensure they are evaluated last.
+- **Regex Output Sanitization:** AI responses are intercepted using a code block regex. If the model ignores instructions and generates a code block exceeding 4 lines, the entire response is scrubbed and replaced with a default conceptual hint. Additionally, chat output tokens are strictly hard-capped at 400.
+
+## API Documentation
+| Method | Endpoint | Description | Guardrail Middleware |
+|--------|----------|-------------|----------------------|
+| `POST` | `/api/auth/login` | Authenticates user and returns JWT | `authLimiter` |
+| `GET` | `/api/project/:slug` | Retrieves project overview & details | `cacheResponse(1h)` |
+| `PUT` | `/api/workspace/file` | Auto-saves user file modifications | `protect`, `autoSaveLimiter` |
+| `POST` | `/api/workspace/complete-task`| Submits a task for completion | `protect` |
+| `POST` | `/api/ai/chat/message` | Contextual AI chat message | `protect`, `aiRateLimiter` |
+| `POST` | `/api/ai/explain-to-pass` | Evaluates student code explanation | `protect`, `aiRateLimiter` |
+| `GET` | `/api/user/profile` | Fetches aggregated profile data | `protect` |
+
+## CI/CD & Deployments
+The backend utilizes GitHub Actions for its CI pipeline, triggering on pushes and pull requests to the `main` branch. It automatically sets up Node.js v20, installs dependencies cleanly with `npm ci`, runs a full typecheck (`tsc --noEmit`), and executes linting.
+
+For deployment, the app is containerized using a multi-stage `Dockerfile` based on `node:20-alpine`, keeping the production image lightweight. A `docker-compose.yml` file is provided to rapidly spin up a local `redis:7-alpine` container. 
+Production deployment requires specific environment variables, most notably `REDIS_URL`, `MONGO_URI`, and `GEMINI_API_KEY`. Crucially, because it is deployed behind reverse proxies or load balancers (like Render), the Express app explicitly enables `app.set('trust proxy', 1)` to accurately resolve client IPs and ensure secure cookie handling.
+
+## Project Structure
+```text
+├── src/
+│   ├── app.ts
+│   ├── server.ts
+│   ├── config/
+│   │   ├── database.ts
+│   │   ├── environment.ts
+│   │   ├── rateLimitStore.ts
+│   │   ├── redis.ts
+│   ├── constants/
+│   │   ├── aiPrompts.ts
+│   │   ├── chatMessages.ts
+│   │   ├── evaluationConstant.ts
+│   │   ├── streak.ts
+│   ├── controllers/
+│   │   ├── activityControllers.ts
+│   │   ├── aiControllers.ts
+│   │   ├── authControllers.ts
+│   │   ├── projectControllers.ts
+│   │   ├── userControllers.ts
+│   │   ├── workspaceControllers.ts
+│   ├── middlewares/
+│   │   ├── aiValidationMiddleware.ts
+│   │   ├── authMiddleware.ts
+│   │   ├── cacheMiddleware.ts
+│   │   ├── rateLimiters.ts
+│   │   ├── validationMiddleware.ts
+│   │   ├── workspaceValidationMiddleware.ts
+│   ├── models/
+│   │   ├── activityModel.ts
+│   │   ├── aiChatModel.ts
+│   │   ├── aiEvaluationModel.ts
+│   │   ├── projectModel.ts
+│   │   ├── taskFileModel.ts
+│   │   ├── taskModel.ts
+│   │   ├── userFileModel.ts
+│   │   ├── userModel.ts
+│   │   ├── userProgressModel.ts
+│   ├── routes/
+│   │   ├── activityRoute.ts
+│   │   ├── aiRoute.ts
+│   │   ├── authRoute.ts
+│   │   ├── projectRoute.ts
+│   │   ├── userRoute.ts
+│   │   ├── workspaceRoute.ts
+│   ├── services/
+│   │   ├── activityService.ts
+│   │   ├── aiChatService.ts
+│   │   ├── aiEvaluationService.ts
+│   │   ├── authService.ts
+│   │   ├── projectService.ts
+│   │   ├── userServices.ts
+│   │   ├── workspaceService.ts
+│   ├── types/
+│   │   ├── aiTypes.ts
+│   │   ├── projectTypes.ts
+│   │   ├── userTypes.ts
+│   │   ├── workspaceTypes.ts
+│   ├── utils/
+│   │   ├── authUtils.ts
+│   │   ├── cookieUtils.ts
+│   │   ├── customErrors.ts
+│   │   ├── geminiClient.ts
+│   │   ├── mappers.ts
+│   │   ├── responseUtils.ts
+│   │   ├── ...
+│   ├── scripts/
+│   │   ├── seedDatabase.ts
+│   │   ├── seedTypes.ts
 ```
-backend/
-│── src/
-│ ├── controllers/ # Handle request logic
-│ ├── routes/ # API route definitions
-│ ├── models/ # Mongoose schemas
-│ ├── services/ # Business logic (AI,..)
-│ ├── middlewares/ # Auth, error handling
-│ ├── config/ 
-│ └── utils/ 
-│
-│── .env 
-│── app.js # Express app setup
-│── server.js # Entry point
-│── package.json
-```
-
----
-
-## API Endpoints
-
-| Method | Endpoint                | Description                          |
-|--------|------------------------|--------------------------------------|
-| GET    | /api/projects          | Get all available projects           |
-| GET    | /api/projects/:id      | Get project details                  |
-// to be filled later
-
----
 
 ## Getting Started
 
-To run this backend locally, ensure you have:
+### Prerequisites
+* Node.js (v20+)
+* MongoDB
+* Redis (Docker recommended)
 
-- Node.js (v16+ recommended)
-- MongoDB (local or cloud instance)
-- API key for AI service (e.g., OpenAI)
-
----
-
-## Installation
-
-1. Clone the repository:
+### Installation & Local Dev
 ```bash
-git clone https://github.com/your-repo/devflow-backend.git
-cd devflow-backend
-```
-2. Install dependencies:
-```bash
-npm install
-```
-3. Create a `.env` file based on `.env.example` and fill in your configuration:
-```MONGO_URI=your_mongodb_uri
-AI_API_KEY=your_ai_api_key
-```
-4. Start the server:
-```bash
-npm start
+# Clone the repository
+git clone https://github.com/Duythanducminh/DevFlow-BE.git
+cd devflow-be
+
+# Install dependencies
+npm ci
+
+# Setup environment variables
+cp .env.example .env
+
+### Environment Variables
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `PORT` | The port the server runs on | `3000` |
+| `MONGO_URI` | MongoDB connection string | `mongodb://localhost:27017/devflow` |
+| `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
+| `GEMINI_API_KEY` | Google Generative AI SDK key | `AIza...` |
+| `JWT_SECRET` | Secret for signing auth tokens | `your_super_secret_key` |
+
+# Start Redis (using Docker)
+docker-compose up -d
+
+# Run the development server
+npm run dev
 ```
 
 ## Contributors
+<a href="https://github.com/onfire-devcamp/devflow-be/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=onfire-devcamp/devflow-be" alt="devflow-be contributors" />
+</a>
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## License & Feedback
+Distributed under the MIT License. If you have feedback or encounter issues, please open an issue in the repository.
