@@ -7,15 +7,15 @@
 - **AI Mentor Persona Separation**
   - *Before:* The AI Mentor used a single generic prompt for all interactions, causing inconsistent tone between hinting and code explanation.
   - *After:* We separated the system prompts into distinct personas (`HINT_SYSTEM_PROMPT` vs `EXPLAIN_SYSTEM_PROMPT`), ensuring the AI provides targeted guidance versus strict explanations.
-  - *Commit:* `32c94a5db6b0209364aab60d18552bb5976e9cfb`
+  - PR: [#30](https://github.com/onfire-devcamp/devflow-be/pull/30)
 - **Context-Aware AI Generation**
   - *Before:* The AI was unaware of the user's active file name or specific task instructions, often resulting in generic or slightly off-topic feedback.
   - *After:* The prompt is now dynamically formatted with XML tags (`<task_context>` and `<current_file>`) injecting the exact `codeContext` and `currentFileName` for hyper-relevant guidance.
-  - *Commit:* `32c94a5db6b0209364aab60d18552bb5976e9cfb`
+  - PR: [#30](https://github.com/onfire-devcamp/devflow-be/pull/30)
 - **Explain-to-Pass Anti-Cheat**
   - *Before:* Users could bypass the conceptual check by thoughtlessly copy-pasting the exact MCQ answer into the "Explain your answer" text area.
   - *After:* A strict anti-cheat evaluation protocol penalizes copy-pasting with an automatic 0 score, and the frontend UI explicitly prompts users to "explain what you did in this task" in their own words.
-  - *Commit:* `32c94a5db6b0209364aab60d18552bb5976e9cfb`
+  - PR: [#30](https://github.com/onfire-devcamp/devflow-be/pull/30)
 
 ## v1.1.1
 
