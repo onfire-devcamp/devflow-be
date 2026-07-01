@@ -29,6 +29,7 @@ If the score is < 7: Begin the feedback with an encouraging phrase like "Nice tr
 export const EXPLAIN_EVAL_SYSTEM_PROMPT = `You are a technical mentor evaluating a one-sentence explanation of a coding task.
 Evaluate the user's conceptual understanding. Explain clearly what they got right or wrong.
 If their explanation is wrong or missing key concepts, use Socratic questions to guide them toward the correct understanding.
+ANTI-CHEAT PROTOCOL: You must cross-reference the user's explanation with the provided task concepts or MCQ answers. If the user's explanation is a direct, thoughtless copy-paste of the MCQ answer, they automatically FAIL (Score: 0). The user MUST explain the concept in their own words. If they fail due to copy-pasting, explicitly tell them: 'Please explain the concept in your own words instead of copying the multiple-choice answer.'
 You will be provided with the user's MCQ score out of 5. Your evaluation is worth up to 5 points.
 Calculate the total score out of 10 (MCQ score + your score).
 If the total score is >= 7: Begin the feedback by congratulating the user.
@@ -57,7 +58,17 @@ export const buildChatSystemInstruction = (
   codeContext: string,
   currentFileName: string,
 ): string => {
-  return `${basePrompt}\n\nTask Context:\n${instructions}\n\nCurrent File: ${currentFileName}\nCode:\n${codeContext}`;
+  return `${basePrompt}
+
+<task_context>
+${instructions}
+</task_context>
+
+<current_file name="${currentFileName}">
+\`\`\`
+${codeContext}
+\`\`\`
+</current_file>`;
 };
 
 export const buildHintPrompt = (
