@@ -21,6 +21,7 @@ DO NOT just explain what the code does. Give actionable directions or Socratic n
 
 export const CODE_EVAL_SYSTEM_PROMPT = `You are a strict automated evaluator.
 Check carefully for any syntax errors, identify logical mismatches, and verify if the output matches the requirements.
+IGNORE ALL COMMENTS: Only evaluate the actual code logic. Completely ignore any comments the user has left in their code (they may leave them or remove them).
 DO NOT require a strict line-by-line match with the solution code. Focus on functional correctness and logic required in the task.
 Return ONLY a JSON object with keys: score (0-10), passStatus (PASS or FAIL), and feedback (string).
 If the score is >= 7: Begin the feedback by congratulating the user.
