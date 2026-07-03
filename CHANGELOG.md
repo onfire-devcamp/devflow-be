@@ -3,7 +3,10 @@
 ## v1.1.2
 
 ### Added or Changed
-
+- **AI Rate Limiting & High Availability**
+  - *Before:* Users hit 429 API quota limits after 5-6 rapid submissions on Free Tier `gemini-2.5-flash`
+  - *After:* Switched to model `gemini-3.1-flash-lite` for more RPM and RPD to handle our current app's user base.
+  - *NOTE:* For further scaling, we will implement a **Model Fallback Chain** (`3.1-flash-lite` -> `2.5-flash-lite` -> `2.5-flash`) in `geminiClient.ts` to seamlessly route traffic to higher-quota models when standard limits are reached.
 - **AI Mentor Persona Separation**
   - *Before:* The AI Mentor used a single generic prompt for all interactions, causing inconsistent tone between hinting and code explanation.
   - *After:* We separated the system prompts into distinct personas (`HINT_SYSTEM_PROMPT` vs `EXPLAIN_SYSTEM_PROMPT`), ensuring the AI provides targeted guidance versus strict explanations.
@@ -15,7 +18,7 @@
 - **Explain-to-Pass Anti-Cheat**
   - *Before:* Users could bypass the conceptual check by thoughtlessly copy-pasting the exact MCQ answer into the "Explain your answer" text area.
   - *After:* A strict anti-cheat evaluation protocol penalizes copy-pasting with an automatic 0 score, and the frontend UI explicitly prompts users to "explain what you did in this task" in their own words.
-  - PR: [#30](https://github.com/onfire-devcamp/devflow-be/pull/30)
+  - PR: [#33](https://github.com/onfire-devcamp/devflow-be/pull/33)
 - **Input and Output Token Handling**
   - *Before:* AI responses were being abruptly cut off mid-sentence (the "token guillotine") because the `maxOutputTokens` limit was too strict, and the model was wasting valuable tokens on unnecessary greetings and pleasantries.
   - *After:* Increased the `maxOutputTokens` safety buffer to `400` and updated the System Prompts with strict directives to eliminate pleasantries, forcing the AI to provide complete, concise, and highly token-efficient answers.
